@@ -1,0 +1,24 @@
+acl localnet src 10.0.0.0/8
+acl SSL_ports port 443
+acl Safe_ports port 80
+acl Safe_ports port 443
+acl Safe_ports port 1025-65535
+acl CONNECT method CONNECT
+acl allowed_domains dstdomain .marketplace.dify.ai
+http_access allow allowed_domains
+http_access deny !Safe_ports
+http_access deny CONNECT !SSL_ports
+http_access allow localhost manager
+http_access deny manager
+http_access allow localhost
+http_access deny all
+tcp_outgoing_address 0.0.0.0
+http_port ${HTTP_PORT}
+coredump_dir ${COREDUMP_DIR}
+refresh_pattern . 0 20% 4320
+http_port ${REVERSE_PROXY_PORT} accel vhost
+cache_peer ${SANDBOX_HOST} parent ${SANDBOX_PORT} 0 no-query originserver
+acl src_all src all
+http_access allow src_all
+client_request_buffer_max_size 100 MB
+max_filedescriptors 65536

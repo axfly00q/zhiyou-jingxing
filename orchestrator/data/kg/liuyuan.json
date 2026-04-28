@@ -1,0 +1,94 @@
+{
+  "park": "liuyuan",
+  "park_name": "留园",
+  "spots": [
+    {
+      "code": "men_ting",
+      "name": "门厅",
+      "themes": {"history": 0.4, "nature": 0.2, "architecture": 0.7, "family": 0.5, "photo": 0.4},
+      "highlight": "留园入口，曲折幽深的入园通道是江南第一'欲扬先抑'。",
+      "suggested_minutes": 5,
+      "neighbors": [{"code": "gu_mu_jiao_ke", "walk_minutes": 3}]
+    },
+    {
+      "code": "gu_mu_jiao_ke",
+      "name": "古木交柯",
+      "themes": {"history": 0.6, "nature": 0.7, "architecture": 0.5, "family": 0.5, "photo": 0.7},
+      "highlight": "古柏与女贞缠绕共生，象征园林意趣。",
+      "suggested_minutes": 6,
+      "neighbors": [{"code": "men_ting", "walk_minutes": 3}, {"code": "lv_yin", "walk_minutes": 3}]
+    },
+    {
+      "code": "lv_yin",
+      "name": "绿荫轩",
+      "themes": {"history": 0.5, "nature": 0.8, "architecture": 0.6, "family": 0.6, "photo": 0.7},
+      "highlight": "中部赏景起点，临池见枫。",
+      "suggested_minutes": 6,
+      "neighbors": [{"code": "gu_mu_jiao_ke", "walk_minutes": 3}, {"code": "han_bi_shan_fang", "walk_minutes": 4}]
+    },
+    {
+      "code": "han_bi_shan_fang",
+      "name": "涵碧山房",
+      "themes": {"history": 0.8, "nature": 0.6, "architecture": 0.9, "family": 0.4, "photo": 0.8},
+      "highlight": "中部主厅，朱熹'一水方涵碧'之意。",
+      "suggested_minutes": 10,
+      "neighbors": [{"code": "lv_yin", "walk_minutes": 4}, {"code": "wen_mu_xi_xiang_xuan", "walk_minutes": 5}, {"code": "qing_feng_chi_guan", "walk_minutes": 4}]
+    },
+    {
+      "code": "wen_mu_xi_xiang_xuan",
+      "name": "闻木樨香轩",
+      "themes": {"history": 0.6, "nature": 0.9, "architecture": 0.6, "family": 0.5, "photo": 0.7},
+      "highlight": "秋日金桂飘香，登山小憩之所。",
+      "suggested_minutes": 7,
+      "neighbors": [{"code": "han_bi_shan_fang", "walk_minutes": 5}, {"code": "ke_ting", "walk_minutes": 4}]
+    },
+    {
+      "code": "qing_feng_chi_guan",
+      "name": "清风池馆",
+      "themes": {"history": 0.5, "nature": 0.7, "architecture": 0.7, "family": 0.5, "photo": 0.8},
+      "highlight": "临池小馆，夏日纳凉。",
+      "suggested_minutes": 6,
+      "neighbors": [{"code": "han_bi_shan_fang", "walk_minutes": 4}, {"code": "qu_xi_lou", "walk_minutes": 3}]
+    },
+    {
+      "code": "qu_xi_lou",
+      "name": "曲谿楼",
+      "themes": {"history": 0.6, "nature": 0.5, "architecture": 0.8, "family": 0.4, "photo": 0.7},
+      "highlight": "上下两层串通中、东两区。",
+      "suggested_minutes": 6,
+      "neighbors": [{"code": "qing_feng_chi_guan", "walk_minutes": 3}, {"code": "wu_feng_xian_guan", "walk_minutes": 4}]
+    },
+    {
+      "code": "wu_feng_xian_guan",
+      "name": "五峰仙馆",
+      "themes": {"history": 0.9, "nature": 0.4, "architecture": 0.9, "family": 0.4, "photo": 0.6},
+      "highlight": "号称'江南第一厅堂'，全用楠木建造。",
+      "suggested_minutes": 12,
+      "neighbors": [{"code": "qu_xi_lou", "walk_minutes": 4}, {"code": "guan_yun_feng", "walk_minutes": 4}]
+    },
+    {
+      "code": "guan_yun_feng",
+      "name": "冠云峰",
+      "themes": {"history": 0.8, "nature": 0.5, "architecture": 0.6, "family": 0.6, "photo": 1.0},
+      "highlight": "江南三大名石之首，太湖石巅峰之作。",
+      "suggested_minutes": 10,
+      "neighbors": [{"code": "wu_feng_xian_guan", "walk_minutes": 4}, {"code": "lin_quan_qi_shi_zhi_guan", "walk_minutes": 3}]
+    },
+    {
+      "code": "lin_quan_qi_shi_zhi_guan",
+      "name": "林泉耆硕之馆",
+      "themes": {"history": 0.8, "nature": 0.5, "architecture": 0.8, "family": 0.4, "photo": 0.7},
+      "highlight": "鸳鸯厅式样，南北两厅装饰各异。",
+      "suggested_minutes": 8,
+      "neighbors": [{"code": "guan_yun_feng", "walk_minutes": 3}, {"code": "ke_ting", "walk_minutes": 5}]
+    },
+    {
+      "code": "ke_ting",
+      "name": "可亭",
+      "themes": {"history": 0.5, "nature": 0.7, "architecture": 0.7, "family": 0.5, "photo": 0.8},
+      "highlight": "山顶六角亭，俯瞰中部全景。",
+      "suggested_minutes": 5,
+      "neighbors": [{"code": "wen_mu_xi_xiang_xuan", "walk_minutes": 4}, {"code": "lin_quan_qi_shi_zhi_guan", "walk_minutes": 5}]
+    }
+  ]
+}

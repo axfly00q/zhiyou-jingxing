@@ -1,0 +1,94 @@
+{
+  "park": "zhuozhengyuan",
+  "park_name": "拙政园",
+  "spots": [
+    {
+      "code": "dong_yuan_men",
+      "name": "东园入口",
+      "themes": {"history": 0.3, "nature": 0.4, "architecture": 0.5, "family": 0.6, "photo": 0.5},
+      "highlight": "拙政园东部主入口，参观从这里开始。",
+      "suggested_minutes": 5,
+      "neighbors": [{"code": "lan_xue_tang", "walk_minutes": 3}]
+    },
+    {
+      "code": "lan_xue_tang",
+      "name": "兰雪堂",
+      "themes": {"history": 0.7, "nature": 0.3, "architecture": 0.7, "family": 0.4, "photo": 0.5},
+      "highlight": "得名于李白'独立天地间，清风洒兰雪'，是东园起景。",
+      "suggested_minutes": 8,
+      "neighbors": [{"code": "fu_rong_xie", "walk_minutes": 4}, {"code": "yuan_xiang_tang", "walk_minutes": 6}]
+    },
+    {
+      "code": "fu_rong_xie",
+      "name": "芙蓉榭",
+      "themes": {"history": 0.4, "nature": 0.7, "architecture": 0.6, "family": 0.5, "photo": 0.8},
+      "highlight": "临水而建，夏季荷花盛开时最美。",
+      "suggested_minutes": 7,
+      "neighbors": [{"code": "lan_xue_tang", "walk_minutes": 4}, {"code": "tian_quan_ting", "walk_minutes": 5}]
+    },
+    {
+      "code": "tian_quan_ting",
+      "name": "天泉亭",
+      "themes": {"history": 0.6, "nature": 0.6, "architecture": 0.5, "family": 0.4, "photo": 0.6},
+      "highlight": "亭中有古井相传为元代大弘寺遗物。",
+      "suggested_minutes": 6,
+      "neighbors": [{"code": "fu_rong_xie", "walk_minutes": 5}, {"code": "yuan_xiang_tang", "walk_minutes": 5}]
+    },
+    {
+      "code": "yuan_xiang_tang",
+      "name": "远香堂",
+      "themes": {"history": 0.9, "nature": 0.5, "architecture": 0.9, "family": 0.4, "photo": 0.7},
+      "highlight": "中部主厅，名取周敦颐《爱莲说》'香远益清'，是赏荷绝佳处。",
+      "suggested_minutes": 12,
+      "neighbors": [{"code": "tian_quan_ting", "walk_minutes": 5}, {"code": "yi_yu_xuan", "walk_minutes": 4}, {"code": "xiang_zhou", "walk_minutes": 4}]
+    },
+    {
+      "code": "yi_yu_xuan",
+      "name": "倚玉轩",
+      "themes": {"history": 0.5, "nature": 0.5, "architecture": 0.7, "family": 0.4, "photo": 0.6},
+      "highlight": "与远香堂西厢相对，可观荷塘全景。",
+      "suggested_minutes": 6,
+      "neighbors": [{"code": "yuan_xiang_tang", "walk_minutes": 4}, {"code": "xiao_fei_hong", "walk_minutes": 3}]
+    },
+    {
+      "code": "xiang_zhou",
+      "name": "香洲",
+      "themes": {"history": 0.7, "nature": 0.4, "architecture": 0.9, "family": 0.5, "photo": 0.9},
+      "highlight": "陆地上的'石舫'造型，江南园林经典符号之一。",
+      "suggested_minutes": 8,
+      "neighbors": [{"code": "yuan_xiang_tang", "walk_minutes": 4}, {"code": "xiao_fei_hong", "walk_minutes": 3}]
+    },
+    {
+      "code": "xiao_fei_hong",
+      "name": "小飞虹",
+      "themes": {"history": 0.6, "nature": 0.5, "architecture": 0.8, "family": 0.5, "photo": 0.9},
+      "highlight": "苏州园林中唯一的廊桥，朱栏倒影如卧虹。",
+      "suggested_minutes": 5,
+      "neighbors": [{"code": "yi_yu_xuan", "walk_minutes": 3}, {"code": "xiang_zhou", "walk_minutes": 3}, {"code": "jian_shan_lou", "walk_minutes": 5}]
+    },
+    {
+      "code": "jian_shan_lou",
+      "name": "见山楼",
+      "themes": {"history": 0.7, "nature": 0.6, "architecture": 0.8, "family": 0.4, "photo": 0.8},
+      "highlight": "得名陶渊明'悠然见南山'，登楼可望北寺塔。",
+      "suggested_minutes": 8,
+      "neighbors": [{"code": "xiao_fei_hong", "walk_minutes": 5}, {"code": "liu_ting_ge", "walk_minutes": 6}]
+    },
+    {
+      "code": "liu_ting_ge",
+      "name": "留听阁",
+      "themes": {"history": 0.7, "nature": 0.7, "architecture": 0.7, "family": 0.4, "photo": 0.7},
+      "highlight": "李商隐'留得残荷听雨声'之意境，秋雨听荷绝佳。",
+      "suggested_minutes": 7,
+      "neighbors": [{"code": "jian_shan_lou", "walk_minutes": 6}, {"code": "dao_ying_lou", "walk_minutes": 5}]
+    },
+    {
+      "code": "dao_ying_lou",
+      "name": "倒影楼",
+      "themes": {"history": 0.5, "nature": 0.6, "architecture": 0.7, "family": 0.4, "photo": 0.9},
+      "highlight": "西部尽头观倒影，水面如镜。",
+      "suggested_minutes": 6,
+      "neighbors": [{"code": "liu_ting_ge", "walk_minutes": 5}]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+* { box-sizing: border-box; }
+html, body, #app { margin: 0; height: 100%; font-family: -apple-system, "Microsoft YaHei", sans-serif; }
+body { background: #f0f2f5; }
+.btn { background: #2c7be5; color: #fff; border: 0; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+.btn.danger { background: #e63946; }
+input, select, textarea { font-family: inherit; padding: 8px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px; }
+table { width: 100%; border-collapse: collapse; background: #fff; }
+th, td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; text-align: left; font-size: 14px; }
+th { background: #fafafa; color: #555; font-weight: 600; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+.badge.high { background: #fde2e2; color: #c0392b; }
+.badge.medium { background: #fff3cd; color: #856404; }
+.badge.low { background: #d4edda; color: #155724; }

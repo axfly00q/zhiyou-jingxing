@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.env.local
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+dist/
+.vite/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Models / data
+third_party/
+models/
+data/uploads/
+data/cache/
+*.ckpt
+*.pt
+*.bin
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dify runtime volumes（含数据库、私钥、向量库运行时数据）
+dify/volumes/
+
+# Deploy env（含真实密钥，使用 deploy/.env.example 作为模板）
+deploy/.env
