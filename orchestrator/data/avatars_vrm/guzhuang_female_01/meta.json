@@ -1,0 +1,6 @@
+﻿{
+  "name": "占位古装女导游",
+  "default_motion": "idle",
+  "camera": { "target_y": 1.35, "distance": 1.2, "fov": 30 },
+  "motions": { "idle": "motions/idle.vrma" }
+}

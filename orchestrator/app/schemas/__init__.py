@@ -45,6 +45,10 @@ class ChatTextResponse(BaseModel):
     citations: List[dict] = []
     audio_url: Optional[str] = None
     intent: Optional[str] = None
+    emotion: str = Field("neutral",
+                         description="情绪标签：neutral/joy/sorrow/angry/surprised")
+    motion: str = Field("idle",
+                        description="动作语义：idle/wave/explain/think")
     latency_ms: int = 0
 
 
@@ -55,6 +59,9 @@ class AvatarIn(BaseModel):
     preview_url: Optional[str] = None
     voice_id: str
     is_default: bool = False
+    model_type: str = "vrm"
+    model_url: Optional[str] = None
+    default_motion: Optional[str] = "idle"
 
 
 class AvatarOut(AvatarIn):

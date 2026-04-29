@@ -1,7 +1,5 @@
-version: "3.9"
-
 # 一键拉起底层基础设施 + 自研 orchestrator + 三个前端。
-# Dify / LiveTalking / FunASR / CosyVoice2 这类重型组件以"外部服务"形式接入：
+# Dify / FunASR / CosyVoice2 这类重型组件以"外部服务"形式接入：
 # - 演示机上推荐独立 docker compose 单独启动（见 docs/部署手册.md）
 # - 此处只把 URL 通过环境变量注入 orchestrator
 #

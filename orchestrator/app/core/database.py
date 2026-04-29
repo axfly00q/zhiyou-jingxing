@@ -25,6 +25,14 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db() -> None:
     """开发环境快速建表；生产请用 Alembic 迁移。"""
     from app.models import all_models  # noqa: F401  确保模型被加载
+    from sqlalchemy import text
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # 轻量迁移：为已存在的表追加新列（PG 支持 IF NOT EXISTS）
+        for ddl in (
+            "ALTER TABLE avatar ADD COLUMN IF NOT EXISTS model_type VARCHAR(16) DEFAULT 'vrm'",
+            "ALTER TABLE avatar ADD COLUMN IF NOT EXISTS model_url VARCHAR(255)",
+            "ALTER TABLE avatar ADD COLUMN IF NOT EXISTS default_motion VARCHAR(32) DEFAULT 'idle'",
+        ):
+            await conn.execute(text(ddl))

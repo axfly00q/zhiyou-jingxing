@@ -1,9 +1,9 @@
 """对话主链路：
-- POST /api/chat/text   文本输入 → 完整回复 + TTS + 数字人推流
+- POST /api/chat/text   文本输入 → 完整回复 + TTS + VRM 表情/动作标签
 - POST /api/chat/voice  音频输入（multipart wav）→ ASR → 同上
 - WS   /api/chat/ws     实时双向：客户端送 JSON {type, payload}
 
-自研编排：ASR → 情感/意图分析（异步）→ Dify RAG → TTS → LiveTalking。
+自研编排：ASR → 情感/意图分析（异步）→ Dify RAG → TTS → dialogue_tagger（VRM 驱动表情/动作）。
 """
 from __future__ import annotations
 
@@ -22,10 +22,13 @@ from app.core.logger import logger
 from app.models import Conversation, Message
 from app.schemas import ChatTextRequest, ChatTextResponse
 from app.services.asr_funasr import asr_client
+from app.services.audio_transcode import to_wav_16k_mono
+from app.services.dialogue_tagger import tag as tag_dialogue
 from app.services.dify_client import dify_client
-from app.services.livetalking_client import livetalking_client
 from app.services.sentiment import analyze
 from app.services.tts_cosyvoice import tts_client
+from app.services.tts_storage import save_tts_mp3
+from app.core.security import verify_session_sig
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -89,21 +92,20 @@ async def _orchestrate(session_id: str, user_text: str,
     answer = dify_resp["answer"]
     citations = dify_resp["citations"]
 
-    # 2) TTS
+    # 2) TTS——落盘为静态文件，返回 URL，避免 base64 dataURL 内存膨胀与 nginx 413
     audio = await tts_client.synthesize(answer)
     audio_url: Optional[str] = None
     if audio:
-        # 简化：把 base64 dataURL 直接给前端，避免引入对象存储
-        import base64
-        audio_url = "data:audio/mpeg;base64," + base64.b64encode(audio).decode("ascii")
+        audio_url = await save_tts_mp3(audio, session_id)
 
-    # 3) LiveTalking 推流（异步，不等待返回）
-    asyncio.create_task(livetalking_client.speak_text(answer, session_id, avatar_code))
+    # 3) 数字人语义标签（前端 VRM 渲染时驱动表情/动作）
+    tags = tag_dialogue(answer)
 
     latency = int((time.perf_counter() - t0) * 1000)
     await _save_assistant_message(db, conv, answer, citations, latency)
     return ChatTextResponse(answer=answer, citations=citations,
-                            audio_url=audio_url, latency_ms=latency)
+                            audio_url=audio_url, latency_ms=latency,
+                            emotion=tags.emotion, motion=tags.motion)
 
 
 @router.post("/text", response_model=ChatTextResponse)
@@ -119,6 +121,8 @@ async def chat_voice(
     db: AsyncSession = Depends(get_db),
 ):
     audio_bytes = await audio.read()
+    # 前端 MediaRecorder 默认输出 webm/opus，FunASR 仅吃 wav → 先转码
+    audio_bytes = await to_wav_16k_mono(audio_bytes, src_hint=audio.filename)
     text = await asr_client.transcribe(audio_bytes)
     if not text:
         return ChatTextResponse(answer="抱歉，没听清，请再说一次。", citations=[], latency_ms=0)
@@ -127,36 +131,77 @@ async def chat_voice(
 
 @router.post("/interrupt")
 async def interrupt(session_id: str):
-    await livetalking_client.interrupt(session_id)
+    """VRM 方案下打断由前端 audio.pause() 完成；服务端无状态可清。"""
     return {"ok": True}
 
 
 @router.get("/avatar-stream")
 async def avatar_stream_url(session_id: Optional[str] = None,
-                            avatar_code: Optional[str] = None):
-    """返回数字人 WebRTC 页面 URL，前端 iframe 嵌入。"""
+                            avatar_code: Optional[str] = None,
+                            db: AsyncSession = Depends(get_db)):
+    """返回当前数字人的 VRM 模型与配置，前端用 three-vrm 加载。
+
+    - 优先按 ``avatar_code`` 查；未指定则取 ``is_default=True`` 的第一条；都没有则返回占位。
+    """
+    from app.models import Avatar
     sid = session_id or uuid.uuid4().hex[:16]
-    return {"session_id": sid,
-            "url": livetalking_client.webrtc_page_url(sid, avatar_code)}
+    q = select(Avatar)
+    if avatar_code:
+        q = q.where(Avatar.code == avatar_code)
+    else:
+        q = q.where(Avatar.is_default == True)  # noqa: E712
+    avatar = (await db.execute(q.limit(1))).scalar_one_or_none()
+
+    if avatar is None:
+        return {
+            "session_id": sid,
+            "avatar_code": avatar_code or "",
+            "model_type": "vrm",
+            "model_url": "",
+            "default_motion": "idle",
+            "voice_id": "",
+            "name": "",
+        }
+    return {
+        "session_id": sid,
+        "avatar_code": avatar.code,
+        "model_type": avatar.model_type or "vrm",
+        "model_url": avatar.model_url or "",
+        "default_motion": avatar.default_motion or "idle",
+        "voice_id": avatar.voice_id,
+        "name": avatar.name,
+    }
 
 
 @router.websocket("/ws")
 async def chat_ws(ws: WebSocket):
-    """轻量 WS：客户端发 {type:'text', session_id, message} 等。"""
+    """轻量 WS：客户端发 {type:'text', session_id, message} 等。
+
+    鉴权：握手需携带 ``?session_id=xxx&sig=hmac16``；sig 为 HMAC-SHA256(session_id, secret_key)[:16]。
+    未携带 sig 以保持向后兼容（仅警告）；sig 错误则关闭 4001。
+    """
+    qp = ws.query_params
+    qs_sid = qp.get("session_id")
+    sig = qp.get("sig")
+    if qs_sid and sig is not None and not verify_session_sig(qs_sid, sig):
+        await ws.close(code=4001)
+        return
+    if qs_sid and sig is None:
+        logger.warning("WS 未携带 sig（向后兼容放行） sid={}", qs_sid)
     await ws.accept()
     from app.core.database import AsyncSessionLocal
     try:
         while True:
             data = await ws.receive_json()
             kind = data.get("type")
-            sid = data.get("session_id") or uuid.uuid4().hex[:16]
+            sid = data.get("session_id") or qs_sid or uuid.uuid4().hex[:16]
             avatar = data.get("avatar_code")
             if kind == "text":
                 async with AsyncSessionLocal() as db:
                     resp = await _orchestrate(sid, data.get("message", ""), avatar, db)
                 await ws.send_json({"type": "answer", **resp.model_dump()})
             elif kind == "interrupt":
-                await livetalking_client.interrupt(sid)
+                # VRM 方案下打断由前端处理
                 await ws.send_json({"type": "interrupted"})
             elif kind == "ping":
                 await ws.send_json({"type": "pong"})

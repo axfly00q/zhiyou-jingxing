@@ -1,0 +1,25 @@
+name: livetalking
+
+services:
+  livetalking:
+    image: lipku/livetalking:latest
+    container_name: livetalking
+    restart: unless-stopped
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+    ports:
+      - "8010:8010"
+    volumes:
+      - ./data/avatars:/app/data/avatars
+    command: >
+      python app.py
+      --avatar guzhuang_female_01
+      --transport webrtc
+    networks:
+      - zhiyou-jingxing_default
+
+networks:
+  zhiyou-jingxing_default:
+    external: true

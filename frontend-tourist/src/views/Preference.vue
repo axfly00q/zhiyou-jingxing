@@ -19,6 +19,7 @@
       <button class="btn" :disabled="loading" @click="submit">
         {{ loading ? '规划中...' : '生成专属路线' }}
       </button>
+      <p v-if="errMsg" style="color:#dc3545;margin:8px 0">⚠ {{ errMsg }}</p>
 
       <div v-if="route" class="result">
         <h3>{{ route.park }} · 推荐路线（约 {{ route.total_minutes }} 分钟）</h3>
@@ -52,12 +53,16 @@ const THEME_LABEL = { history: '历史', nature: '自然', architecture: '建筑
 const pref = reactive({ history: 0.5, nature: 0.5, architecture: 0.5, family: 0.5, photo: 0.5, duration_min: 90 })
 const route = ref(null)
 const loading = ref(false)
+const errMsg = ref('')
 
 async function submit() {
   loading.value = true
+  errMsg.value = ''
   try {
     route.value = await planRoute(park, pref)
     sessionStorage.setItem('route', JSON.stringify(route.value))
+  } catch (e) {
+    errMsg.value = e.response?.data?.detail || e.message || '路线规划失败，请稍后重试'
   } finally {
     loading.value = false
   }

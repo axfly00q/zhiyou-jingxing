@@ -41,3 +41,14 @@ dify/volumes/
 
 # Deploy env（含真实密钥，使用 deploy/.env.example 作为模板）
 deploy/.env
+
+# Large binary files（超过 GitHub 100MB 限制）
+*.pptx
+*.docx
+*.pdf
+
+# Root-level personal/test media files
+/*.mp4
+/*.png
+/*.jpg
+/*.jpeg

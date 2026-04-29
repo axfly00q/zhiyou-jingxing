@@ -124,6 +124,9 @@ def _load_from_neo4j(park: str) -> Optional[ParkGraph]:
                     spots[a].neighbors.append({"code": b, "walk_minutes": w})
                 if b in spots:
                     spots[b].neighbors.append({"code": a, "walk_minutes": w})
+    except Exception as exc:
+        logger.warning("Neo4j 查询失败，回退 JSON：{}", exc)
+        return None
     finally:
         driver.close()
     if not spots:

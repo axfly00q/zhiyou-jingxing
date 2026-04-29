@@ -35,13 +35,14 @@ class Settings(BaseSettings):
     # Dify
     dify_base_url: str = "http://localhost:5001/v1"
     dify_api_key: str = ""
+    # 知识库 dataset id（在 Dify 后台「知识库」详情 URL 中可见）；填写后 /admin/knowledge/upload 会同步入库
+    dify_dataset_id: str = ""
+    dify_dataset_api_key: str = ""
 
     # ASR / TTS / Avatar
     asr_base_url: str = "http://localhost:10095"
     tts_base_url: str = "http://localhost:8001"
     tts_default_voice: str = "guide_female_01"
-    livetalking_base_url: str = "http://localhost:8010"
-    livetalking_default_avatar: str = "guzhuang_female_01"
 
     # LLM (sentiment / suggestion / KG extraction)
     llm_provider: str = "deepseek"
@@ -60,7 +61,7 @@ class Settings(BaseSettings):
     @property
     def database_url(self) -> str:
         return (
-            f"postgresql+psycopg://{self.postgres_user}:{self.postgres_password}"
+            f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 

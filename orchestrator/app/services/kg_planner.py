@@ -78,16 +78,25 @@ def plan_route(park: str, pref: TouristPreference) -> Optional[RouteResponse]:
     ordered: List[Tuple[Spot, int]] = [(start, 0)]  # (spot, walk_in_minutes)
     used = start.suggested_minutes
 
+    # 贪心扩张：起点本身已超期望时长时不再拼接；
+    # 跳过占比过大（>80%）的单个超长景点，避免把中部 40 min 拼进 20 min 路线。
+    max_per_spot = max(int(pref.duration_min * 0.8), 5)
     while used < pref.duration_min:
         nxt, walk = _next_step(ordered[-1][0], graph, visited, pref)
         if nxt is None:
             break
         cost = walk + nxt.suggested_minutes
+        if nxt.suggested_minutes > max_per_spot:
+            visited.add(nxt.code)  # 标记为已考虑，避免死循环
+            continue
         if used + cost > pref.duration_min + 5:  # 容许 5 分钟超出
             break
         ordered.append((nxt, walk))
         visited.add(nxt.code)
         used += cost
+
+    # 超过期望太多时截断展示值，避免误导用户
+    display_minutes = min(used, pref.duration_min + 15)
 
     spots_out = [
         RouteSpot(
@@ -101,7 +110,7 @@ def plan_route(park: str, pref: TouristPreference) -> Optional[RouteResponse]:
     score = sum(_theme_score(s, pref) for s, _ in ordered)
     return RouteResponse(
         park=graph.park_name,
-        total_minutes=used,
+        total_minutes=display_minutes,
         score=round(score, 2),
         spots=spots_out,
         narrative="",  # 由调用方异步填充（避免阻塞）

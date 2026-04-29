@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import List
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -84,19 +84,31 @@ async def sentiment_trend(days: int = 7, db: AsyncSession = Depends(get_db)):
 
 @router.get("/spot-heatmap")
 async def spot_heatmap(db: AsyncSession = Depends(get_db)):
-    """从用户消息里粗匹配景点名 → 提及次数；供大屏热力图。"""
+    """从用户消息里粗匹配景点名 → 提及次数；供大屏热力图。
+
+    实现：每个 park 一次聚合 SQL（``SUM(CASE WHEN content LIKE '%name%' THEN 1 ELSE 0 END)``），
+    避免对每个景点单独 COUNT 造成 N+1。
+    """
     from app.services.kg_repo import load_park
     counts: dict[str, dict] = {}
     for park_code in ("zhuozhengyuan", "liuyuan"):
         graph = load_park(park_code)
         if not graph:
             continue
-        for spot in graph.all():
-            q = (select(func.count(Message.id))
-                 .where(Message.role == "user", Message.content.like(f"%{spot.name}%")))
-            n = (await db.execute(q)).scalar_one()
+        spots = list(graph.all())
+        if not spots:
+            continue
+        cols = [
+            func.sum(case((Message.content.like(f"%{s.name}%"), 1), else_=0)).label(s.code)
+            for s in spots
+        ]
+        row = (await db.execute(
+            select(*cols).where(Message.role == "user")
+        )).one()
+        for s, n in zip(spots, row):
+            n = int(n or 0)
             if n:
-                counts[spot.code] = {"name": spot.name, "park": park_code, "count": n}
+                counts[s.code] = {"name": s.name, "park": park_code, "count": n}
     return sorted(counts.values(), key=lambda x: x["count"], reverse=True)
 
 
