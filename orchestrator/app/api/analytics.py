@@ -16,10 +16,10 @@ router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 
 @router.get("/overview", response_model=OverviewMetrics)
-async def overview(db: AsyncSession = Depends(get_db)):
+async def overview(days: int = 7, db: AsyncSession = Depends(get_db)):
     today = datetime.utcnow().date()
     today_start = datetime.combine(today, datetime.min.time())
-    week_start = today_start - timedelta(days=7)
+    week_start = today_start - timedelta(days=days)
 
     today_sessions = (await db.execute(
         select(func.count(Conversation.id)).where(Conversation.started_at >= today_start)

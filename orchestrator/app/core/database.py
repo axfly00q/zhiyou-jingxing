@@ -34,5 +34,6 @@ async def init_db() -> None:
             "ALTER TABLE avatar ADD COLUMN IF NOT EXISTS model_type VARCHAR(16) DEFAULT 'vrm'",
             "ALTER TABLE avatar ADD COLUMN IF NOT EXISTS model_url VARCHAR(255)",
             "ALTER TABLE avatar ADD COLUMN IF NOT EXISTS default_motion VARCHAR(32) DEFAULT 'idle'",
+            "ALTER TABLE conversation ADD COLUMN IF NOT EXISTS dify_conversation_id VARCHAR(128)",
         ):
             await conn.execute(text(ddl))

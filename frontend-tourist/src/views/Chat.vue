@@ -55,7 +55,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
-import { chatText, getAvatarStream, interrupt } from '../api.js'
+import { chatText, getAvatarStream, getChatSuggestions, interrupt } from '../api.js'
 import VrmAvatar from '../components/VrmAvatar.vue'
 
 // 未上传 VRM 时的 demo 资产（three-vrm 官方示例，CDN）
@@ -63,6 +63,9 @@ import VrmAvatar from '../components/VrmAvatar.vue'
 const SAMPLE_VRM_URL = 'https://cdn.jsdelivr.net/gh/pixiv/three-vrm@release/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm'
 
 const parkName = sessionStorage.getItem('park_name') || '苏州园林'
+const parkCode = sessionStorage.getItem('park_code') || ''
+// Web Speech API（TTS Tier-3 保底）
+const synth = window.speechSynthesis ?? null
 const sessionId = ref(crypto.randomUUID().slice(0, 16))
 const messages = ref([])
 const input = ref('')
@@ -83,8 +86,8 @@ const currentAudioUrl = ref('')
 const currentEmotion = ref('neutral')
 const currentMotion = ref('idle')
 
-// 预设问题（后续接 /chat/suggestions）
-const presets = ref(['路线', '这里最佳拍照点？', '讲讲历史', '下一站是哪里？'])
+// 预设问题（从 hot-questions 接口动态加载，兜底保留静态提示）
+const presets = ref(['这里最佳拍照点？', '讲讲历史', '下一站是哪里？', '门票怎么购买？'])
 
 // 最终传给 VRM 的 model URL：优先后台配置，其次 sample
 const effectiveModelUrl = computed(() => avatar.model_url || SAMPLE_VRM_URL)
@@ -126,6 +129,16 @@ onMounted(async () => {
     console.warn('avatar config load failed', e)
   }
 
+  // 拉取该园区近7天 Top5 热门问题作为预设 chips
+  try {
+    const hot = await getChatSuggestions(parkCode || undefined, 5)
+    if (hot && hot.length) {
+      presets.value = hot.map(h => h.question)
+    }
+  } catch (e) {
+    console.warn('chat suggestions load failed', e)
+  }
+
   const route = JSON.parse(sessionStorage.getItem('route') || 'null')
   if (route?.narrative) {
     push('assistant', route.narrative)
@@ -152,12 +165,20 @@ function applyResponse(r) {
     currentAudioUrl.value = r.audio_url + (sep ? `${sep}t=${Date.now()}` : '')
   } else {
     currentAudioUrl.value = ''
+    // TTS Tier-3：CosyVoice2 与 Tier-2 均不可用时，用浏览器内置 TTS 朗读
+    if (synth && r.answer) {
+      const utt = new SpeechSynthesisUtterance(r.answer)
+      utt.lang = 'zh-CN'
+      synth.cancel()
+      synth.speak(utt)
+    }
   }
 }
 
 async function send() {
   const text = input.value.trim()
   if (!text || loading.value) return
+  synth?.cancel()
   push('user', text)
   input.value = ''
   loading.value = true
@@ -165,6 +186,7 @@ async function send() {
     const r = await chatText({
       session_id: sessionId.value, message: text,
       avatar_code: avatar.code || undefined,
+      park_code: parkCode || undefined,
     })
     applyResponse(r)
   } catch (e) {
@@ -248,6 +270,7 @@ async function uploadAudio() {
 }
 
 async function onInterrupt() {
+  synth?.cancel()
   try { avatarRef.value?.stop() } catch (e) {}
   try { await interrupt(sessionId.value) } catch (e) {}
 }

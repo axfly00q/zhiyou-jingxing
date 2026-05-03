@@ -13,8 +13,8 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.core.logger import logger
 from app.core.security import create_access_token, verify_admin
-from app.models import Avatar
-from app.schemas import AvatarIn, AvatarOut, LoginRequest, TokenResponse
+from app.models import Avatar, Suggestion
+from app.schemas import AvatarIn, AvatarOut, LoginRequest, SuggestionOut, SuggestionStatusUpdate, TokenResponse
 from app.services.dify_client import dify_client
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -172,3 +172,21 @@ async def upload_knowledge(file: UploadFile = File(...)):
 
     return {"ok": True, "saved_as": fp.name, "synced": synced,
             "document_id": document_id, "error": error}
+
+
+# ---- 服务建议状态管理 ----
+
+@router.patch("/suggestions/{suggestion_id}/status",
+              response_model=SuggestionOut,
+              dependencies=[Depends(verify_admin)])
+async def update_suggestion_status(suggestion_id: int,
+                                   payload: SuggestionStatusUpdate,
+                                   db: AsyncSession = Depends(get_db)):
+    """更新建议状态：open / resolved / ignored。"""
+    obj = await db.get(Suggestion, suggestion_id)
+    if not obj:
+        raise HTTPException(404, "suggestion not found")
+    obj.status = payload.status
+    await db.commit()
+    await db.refresh(obj)
+    return obj

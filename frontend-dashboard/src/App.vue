@@ -2,7 +2,14 @@
   <div class="dash">
     <header>
       <h1>智游景行 · 苏州园林导览数据大屏</h1>
-      <span class="time">{{ now }}</span>
+      <div class="header-right">
+        <select v-model="selectedDays" @change="refresh" class="days-select">
+          <option :value="7">近7天</option>
+          <option :value="30">近30天</option>
+          <option :value="90">近90天</option>
+        </select>
+        <span class="time">{{ now }}</span>
+      </div>
     </header>
     <div class="grid">
       <!-- KPI -->
@@ -48,6 +55,7 @@ import * as echarts from 'echarts'
 const overview = ref({ today_sessions: 0, today_messages: 0, week_sessions: 0, avg_latency_ms: 0, satisfaction: 0 })
 const suggestions = ref([])
 const now = ref('')
+const selectedDays = ref(7)
 
 const trendEl = ref(), pieEl = ref(), hotEl = ref(), spotEl = ref()
 let charts = {}, timer
@@ -57,9 +65,9 @@ const dark = { textStyle: { color: '#cbd5e1' } }
 async function refresh() {
   now.value = new Date().toLocaleString()
   const [o, t, h, sp, sg] = await Promise.all([
-    axios.get('/api/analytics/overview'),
-    axios.get('/api/analytics/sentiment-trend'),
-    axios.get('/api/analytics/hot-questions'),
+    axios.get('/api/analytics/overview', { params: { days: selectedDays.value } }),
+    axios.get('/api/analytics/sentiment-trend', { params: { days: selectedDays.value } }),
+    axios.get('/api/analytics/hot-questions', { params: { limit: 10 } }),
     axios.get('/api/analytics/spot-heatmap'),
     axios.get('/api/analytics/suggestions')
   ])
@@ -142,6 +150,8 @@ onUnmounted(() => { clearInterval(timer); window.removeEventListener('resize', r
 <style scoped>
 .dash { height: 100vh; padding: 16px; display: flex; flex-direction: column; }
 header { display: flex; justify-content: space-between; align-items: center; padding: 0 16px 12px; border-bottom: 1px solid #1f2a44; }
+.header-right { display: flex; align-items: center; gap: 16px; }
+.days-select { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 6px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
 header h1 { margin: 0; font-size: 24px; background: linear-gradient(90deg, #38bdf8, #c084fc); -webkit-background-clip: text; color: transparent; }
 .time { color: #64748b; }
 .grid {

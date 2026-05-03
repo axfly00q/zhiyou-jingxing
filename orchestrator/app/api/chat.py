@@ -17,6 +17,7 @@ from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.logger import logger
 from app.models import Conversation, Message
@@ -34,14 +35,19 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 
 async def _ensure_conversation(db: AsyncSession, session_id: str,
-                               avatar_code: Optional[str]) -> Conversation:
+                               avatar_code: Optional[str],
+                               park_code: Optional[str] = None) -> Conversation:
     q = select(Conversation).where(Conversation.session_id == session_id)
     conv = (await db.execute(q)).scalar_one_or_none()
     if conv is None:
-        conv = Conversation(session_id=session_id, avatar_id=avatar_code)
+        conv = Conversation(session_id=session_id, avatar_id=avatar_code,
+                            park_code=park_code)
         db.add(conv)
         await db.commit()
         await db.refresh(conv)
+    elif park_code and not conv.park_code:
+        conv.park_code = park_code
+        await db.commit()
     return conv
 
 
@@ -79,21 +85,44 @@ async def _save_assistant_message(db: AsyncSession, conv: Conversation,
     return msg
 
 
+def _get_secondary_tts():
+    """根据配置懒加载二级 TTS 客户端；无配置时返回 None。"""
+    provider = settings.tts_secondary_provider.lower()
+    if provider == "edge":
+        from app.services.tts_edge import EdgeTTSClient
+        return EdgeTTSClient()
+    if provider == "fish":
+        from app.services.tts_fish import FishTTSClient
+        return FishTTSClient()
+    return None
+
+
 async def _orchestrate(session_id: str, user_text: str,
                        avatar_code: Optional[str],
-                       db: AsyncSession) -> ChatTextResponse:
+                       db: AsyncSession,
+                       park_code: Optional[str] = None) -> ChatTextResponse:
     t0 = time.perf_counter()
-    conv = await _ensure_conversation(db, session_id, avatar_code)
+    conv = await _ensure_conversation(db, session_id, avatar_code, park_code)
     await _save_user_message(db, conv, user_text)
 
-    # 1) Dify RAG 问答
+    # 1) Dify RAG 问答（携带已有 conversation_id 保持多轮上下文）
     dify_resp = await dify_client.chat(query=user_text, user=session_id,
-                                        conversation_id=None)
+                                        conversation_id=conv.dify_conversation_id)
     answer = dify_resp["answer"]
     citations = dify_resp["citations"]
+    # 回写 Dify 返回的 conversation_id，供下一轮使用
+    if dify_resp.get("conversation_id") and dify_resp["conversation_id"] != "stub":
+        conv.dify_conversation_id = dify_resp["conversation_id"]
+        await db.commit()
 
-    # 2) TTS——落盘为静态文件，返回 URL，避免 base64 dataURL 内存膨胀与 nginx 413
+    # 2) TTS——三级降级链：CosyVoice2 → 二级（edge/fish）→ 前端 Web Speech API
     audio = await tts_client.synthesize(answer)
+    if not audio:
+        secondary = _get_secondary_tts()
+        if secondary:
+            audio = await secondary.synthesize(answer)
+            if audio:
+                logger.info("TTS Tier2 ({}) 生效", settings.tts_secondary_provider)
     audio_url: Optional[str] = None
     if audio:
         audio_url = await save_tts_mp3(audio, session_id)
@@ -110,7 +139,8 @@ async def _orchestrate(session_id: str, user_text: str,
 
 @router.post("/text", response_model=ChatTextResponse)
 async def chat_text(req: ChatTextRequest, db: AsyncSession = Depends(get_db)):
-    return await _orchestrate(req.session_id, req.message, req.avatar_code, db)
+    return await _orchestrate(req.session_id, req.message, req.avatar_code, db,
+                               park_code=req.park_code)
 
 
 @router.post("/voice", response_model=ChatTextResponse)
@@ -133,6 +163,34 @@ async def chat_voice(
 async def interrupt(session_id: str):
     """VRM 方案下打断由前端 audio.pause() 完成；服务端无状态可清。"""
     return {"ok": True}
+
+
+_FALLBACK_SUGGESTIONS = [
+    "这里最佳拍照点在哪？",
+    "能介绍一下这里的历史吗？",
+    "下一个景点是哪里？",
+    "门票怎么购买？",
+]
+
+
+@router.get("/suggestions")
+async def chat_suggestions(park: Optional[str] = None,
+                           limit: int = 5,
+                           db: AsyncSession = Depends(get_db)):
+    """返回指定园区近 7 天 Top N 热门用户问题，无数据时兜底返回静态列表。"""
+    from datetime import datetime, timedelta
+    from sqlalchemy import func
+    week_start = datetime.utcnow() - timedelta(days=7)
+    q = (select(Message.content, func.count(Message.id).label("c"))
+         .join(Conversation, Conversation.id == Message.conversation_id)
+         .where(Message.role == "user", Message.created_at >= week_start))
+    if park:
+        q = q.where(Conversation.park_code == park)
+    q = q.group_by(Message.content).order_by(func.count(Message.id).desc()).limit(limit)
+    rows = (await db.execute(q)).all()
+    if rows:
+        return [{"question": r[0][:80], "count": r[1]} for r in rows]
+    return [{"question": q, "count": 0} for q in _FALLBACK_SUGGESTIONS]
 
 
 @router.get("/avatar-stream")

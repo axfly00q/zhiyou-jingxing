@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     asr_base_url: str = "http://localhost:10095"
     tts_base_url: str = "http://localhost:8001"
     tts_default_voice: str = "guide_female_01"
+    # TTS 二级降级：edge | fish | none
+    tts_secondary_provider: str = "none"
+    fish_api_key: str = ""
+    fish_voice_id: str = ""
 
     # LLM (sentiment / suggestion / KG extraction)
     llm_provider: str = "deepseek"

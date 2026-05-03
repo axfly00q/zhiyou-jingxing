@@ -22,6 +22,7 @@ dependencies = [
     "loguru>=0.7",
     "apscheduler>=3.10",
     "numpy>=1.26",
+    "edge-tts>=6.1",
 ]
 
 [project.optional-dependencies]

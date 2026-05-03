@@ -38,6 +38,7 @@ class ChatTextRequest(BaseModel):
     session_id: str
     message: str
     avatar_code: Optional[str] = None
+    park_code: Optional[str] = None
 
 
 class ChatTextResponse(BaseModel):
@@ -113,3 +114,8 @@ class SuggestionOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class SuggestionStatusUpdate(BaseModel):
+    status: str = Field(..., pattern="^(open|resolved|ignored)$",
+                        description="open / resolved / ignored")
