@@ -7,9 +7,17 @@ Dify 应用（chat-app）以 HTTP API 暴露：
 from __future__ import annotations
 
 import json
+import re
 from typing import AsyncIterator, Optional
 
 import httpx
+
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+
+
+def _strip_think(text: str) -> str:
+    """移除模型输出中的 <think>...</think> 推理过程块。"""
+    return _THINK_RE.sub("", text).strip()
 
 from app.core.config import settings
 from app.core.logger import logger
@@ -24,17 +32,27 @@ class DifyClient:
     def _headers(self) -> dict:
         return {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
 
+    async def _llm_fallback(self, query: str, conversation_id) -> dict:
+        """Dify 不可用时直接调用 LLM 回答游客问题。"""
+        from app.services.llm_client import llm_client
+        try:
+            answer = await llm_client.chat([
+                {"role": "system",
+                 "content": "你是苏州园林智慧导游助手，熟悉拙政园、留园等苏州经典园林的历史、文化和景点。请用简洁友好的中文回答游客问题。"},
+                {"role": "user", "content": query},
+            ], temperature=0.5, max_tokens=512)
+        except Exception as e:
+            logger.error("LLM fallback 也失败：{}", e)
+            answer = "抱歉，当前服务繁忙，请稍后再试。"
+        return {"answer": answer, "citations": [], "conversation_id": conversation_id}
+
     async def chat(self, query: str, user: str,
                    conversation_id: Optional[str] = None,
                    inputs: Optional[dict] = None) -> dict:
         """阻塞式调用，返回 {answer, citations, conversation_id}。"""
         if not self.api_key:
-            logger.warning("Dify api_key 未配置，返回桩答案")
-            return {
-                "answer": f"（Dify 未配置）你问的是：{query}",
-                "citations": [],
-                "conversation_id": conversation_id or "stub",
-            }
+            logger.warning("Dify api_key 未配置，降级到直接 LLM")
+            return await self._llm_fallback(query, conversation_id or "stub")
         payload = {
             "query": query,
             "user": user,
@@ -49,15 +67,12 @@ class DifyClient:
                                          json=payload, headers=self._headers)
                 resp.raise_for_status()
                 data = resp.json()
-        except httpx.HTTPStatusError as exc:
-            body = (exc.response.text or "")[:200]
-            logger.error("Dify {} body={}", exc.response.status_code, body)
-            return {"answer": "（知识库服务暂不可用，请稍后再试）", "citations": [],
-                    "conversation_id": conversation_id}
-        except httpx.HTTPError as exc:
-            logger.exception("Dify 网络错误：{}", exc)
-            return {"answer": "（网络不稳定，请稍后再试）", "citations": [],
-                    "conversation_id": conversation_id}
+        except (httpx.HTTPStatusError, httpx.HTTPError) as exc:
+            if isinstance(exc, httpx.HTTPStatusError):
+                logger.error("Dify {} body={}", exc.response.status_code, (exc.response.text or "")[:200])
+            else:
+                logger.warning("Dify 不可达，降级到直接 LLM：{}", exc)
+            return await self._llm_fallback(query, conversation_id)
         citations = []
         for r in (data.get("metadata", {}).get("retriever_resources") or []):
             citations.append({
@@ -66,7 +81,7 @@ class DifyClient:
                 "score": r.get("score"),
             })
         return {
-            "answer": data.get("answer", ""),
+            "answer": _strip_think(data.get("answer", "")),
             "citations": citations,
             "conversation_id": data.get("conversation_id"),
         }
@@ -98,6 +113,8 @@ class DifyClient:
                         logger.error("Dify 流式返回 {} body={}", resp.status_code, body)
                         yield "（知识库服务暂不可用，请稍后重试）"
                         return
+                    buf = ""
+                    in_think = False
                     async for line in resp.aiter_lines():
                         if not line or not line.startswith("data:"):
                             continue
@@ -108,8 +125,37 @@ class DifyClient:
                             evt = json.loads(chunk)
                         except json.JSONDecodeError:
                             continue
-                        if evt.get("event") in ("message", "agent_message"):
-                            yield evt.get("answer", "")
+                        if evt.get("event") not in ("message", "agent_message"):
+                            continue
+                        token = evt.get("answer", "")
+                        buf += token
+                        # 过滤 <think>...</think> 块（跨 token 安全）
+                        while True:
+                            if in_think:
+                                end = buf.find("</think>")
+                                if end == -1:
+                                    buf = ""  # 丢弃思考中内容，保留末尾防截断
+                                    break
+                                buf = buf[end + 8:]
+                                in_think = False
+                            else:
+                                start = buf.lower().find("<think>")
+                                if start == -1:
+                                    break
+                                safe = buf[:start]
+                                if safe:
+                                    yield safe
+                                buf = buf[start + 7:]
+                                in_think = True
+                        if not in_think and len(buf) > 7:
+                            # 保留末尾 7 字节防止 <think> 被截断在边界
+                            yield buf[:-7]
+                            buf = buf[-7:]
+                    if buf and not in_think:
+                        yield buf
+        except httpx.HTTPError as exc:
+            logger.exception("Dify 流式网络错误：{}", exc)
+            yield "（网络不稳定，请稍后重试）"
         except httpx.HTTPError as exc:
             logger.exception("Dify 流式网络错误：{}", exc)
             yield "（网络不稳定，请稍后重试）"

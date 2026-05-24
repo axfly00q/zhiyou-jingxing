@@ -43,10 +43,15 @@ class Settings(BaseSettings):
     asr_base_url: str = "http://localhost:10095"
     tts_base_url: str = "http://localhost:8001"
     tts_default_voice: str = "guide_female_01"
-    # TTS 二级降级：edge | fish | none
+    # TTS 二级降级：edge | fish | doubao | none
     tts_secondary_provider: str = "none"
     fish_api_key: str = ""
     fish_voice_id: str = ""
+
+    # 火山引擎 BigTTS（语音合成大模型-字符版）
+    doubao_app_id: str = ""
+    doubao_access_token: str = ""
+    doubao_tts_voice: str = "zh_female_wanwanxiaohe_moon_bigtts"
 
     # LLM (sentiment / suggestion / KG extraction)
     llm_provider: str = "deepseek"

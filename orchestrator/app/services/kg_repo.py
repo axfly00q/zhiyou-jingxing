@@ -38,17 +38,23 @@ DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "kg"
 
 
 class Spot:
-    __slots__ = ("code", "name", "themes", "highlight", "suggested_minutes", "neighbors")
+    __slots__ = ("code", "name", "themes", "highlight", "suggested_minutes", "neighbors", "tags", "map_x", "map_y")
 
     def __init__(self, code: str, name: str, themes: Dict[str, float],
                  highlight: str, suggested_minutes: int,
-                 neighbors: List[dict]) -> None:
+                 neighbors: List[dict],
+                 tags: Optional[List[str]] = None,
+                 map_x: Optional[float] = None,
+                 map_y: Optional[float] = None) -> None:
         self.code = code
         self.name = name
         self.themes = themes
         self.highlight = highlight
         self.suggested_minutes = suggested_minutes
         self.neighbors = neighbors  # [{code, walk_minutes}]
+        self.tags: List[str] = tags or []
+        self.map_x: Optional[float] = map_x
+        self.map_y: Optional[float] = map_y
 
     def neighbor_minutes(self, other_code: str) -> Optional[int]:
         for n in self.neighbors:
@@ -58,10 +64,12 @@ class Spot:
 
 
 class ParkGraph:
-    def __init__(self, park: str, park_name: str, spots: List[Spot]) -> None:
+    def __init__(self, park: str, park_name: str, spots: List[Spot],
+                 entrance_code: Optional[str] = None) -> None:
         self.park = park
         self.park_name = park_name
         self.spots: Dict[str, Spot] = {s.code: s for s in spots}
+        self.entrance_code: Optional[str] = entrance_code
 
     def get(self, code: str) -> Optional[Spot]:
         return self.spots.get(code)
@@ -75,10 +83,15 @@ def _load_from_json(park: str) -> Optional[ParkGraph]:
     if not fp.exists():
         return None
     raw = json.loads(fp.read_text(encoding="utf-8"))
-    spots = [Spot(s["code"], s["name"], s["themes"], s["highlight"],
-                  s["suggested_minutes"], s.get("neighbors", []))
-             for s in raw["spots"]]
-    return ParkGraph(raw["park"], raw["park_name"], spots)
+    spots = [Spot(
+        s["code"], s["name"], s["themes"], s["highlight"],
+        s["suggested_minutes"], s.get("neighbors", []),
+        tags=s.get("tags", []),
+        map_x=s.get("map_x"),
+        map_y=s.get("map_y"),
+    ) for s in raw["spots"]]
+    return ParkGraph(raw["park"], raw["park_name"], spots,
+                     entrance_code=raw.get("entrance"))
 
 
 def _load_from_neo4j(park: str) -> Optional[ParkGraph]:
@@ -135,8 +148,18 @@ def _load_from_neo4j(park: str) -> Optional[ParkGraph]:
 
 
 def load_park(park: str) -> Optional[ParkGraph]:
-    """优先 Neo4j → 失败回退 JSON。"""
+    """优先 Neo4j → 失败回退 JSON。Neo4j 加载时从 JSON 补充 entrance/tags/坐标。"""
     g = _load_from_neo4j(park)
     if g is not None:
+        # 用 JSON 补充 Neo4j 不含的字段
+        g_json = _load_from_json(park)
+        if g_json is not None:
+            g.entrance_code = g_json.entrance_code
+            for spot in g.all():
+                js = g_json.get(spot.code)
+                if js is not None:
+                    spot.tags = js.tags
+                    spot.map_x = js.map_x
+                    spot.map_y = js.map_y
         return g
     return _load_from_json(park)

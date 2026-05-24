@@ -1,6 +1,7 @@
 {
   "park": "zhuozhengyuan",
   "park_name": "拙政园",
+  "entrance": "dong_yuan_men",
   "spots": [
     {
       "code": "dong_yuan_men",
@@ -8,6 +9,8 @@
       "themes": {"history": 0.3, "nature": 0.4, "architecture": 0.5, "family": 0.6, "photo": 0.5},
       "highlight": "拙政园东部主入口，参观从这里开始。",
       "suggested_minutes": 5,
+      "tags": ["wheelchair_ok", "child_ok"],
+      "map_x": 69.0, "map_y": 86.0,
       "neighbors": [{"code": "lan_xue_tang", "walk_minutes": 3}]
     },
     {
@@ -16,6 +19,8 @@
       "themes": {"history": 0.7, "nature": 0.3, "architecture": 0.7, "family": 0.4, "photo": 0.5},
       "highlight": "得名于李白'独立天地间，清风洒兰雪'，是东园起景。",
       "suggested_minutes": 8,
+      "tags": ["wheelchair_ok", "child_ok"],
+      "map_x": 66.0, "map_y": 70.0,
       "neighbors": [{"code": "fu_rong_xie", "walk_minutes": 4}, {"code": "yuan_xiang_tang", "walk_minutes": 6}]
     },
     {
@@ -24,6 +29,8 @@
       "themes": {"history": 0.4, "nature": 0.7, "architecture": 0.6, "family": 0.5, "photo": 0.8},
       "highlight": "临水而建，夏季荷花盛开时最美。",
       "suggested_minutes": 7,
+      "tags": ["child_ok", "skip_if_rush"],
+      "map_x": 73.0, "map_y": 57.0,
       "neighbors": [{"code": "lan_xue_tang", "walk_minutes": 4}, {"code": "tian_quan_ting", "walk_minutes": 5}]
     },
     {
@@ -32,6 +39,8 @@
       "themes": {"history": 0.6, "nature": 0.6, "architecture": 0.5, "family": 0.4, "photo": 0.6},
       "highlight": "亭中有古井相传为元代大弘寺遗物。",
       "suggested_minutes": 6,
+      "tags": ["child_ok", "skip_if_rush"],
+      "map_x": 64.0, "map_y": 56.0,
       "neighbors": [{"code": "fu_rong_xie", "walk_minutes": 5}, {"code": "yuan_xiang_tang", "walk_minutes": 5}]
     },
     {
@@ -40,6 +49,8 @@
       "themes": {"history": 0.9, "nature": 0.5, "architecture": 0.9, "family": 0.4, "photo": 0.7},
       "highlight": "中部主厅，名取周敦颐《爱莲说》'香远益清'，是赏荷绝佳处。",
       "suggested_minutes": 12,
+      "tags": ["wheelchair_ok", "child_ok"],
+      "map_x": 52.0, "map_y": 54.0,
       "neighbors": [{"code": "tian_quan_ting", "walk_minutes": 5}, {"code": "yi_yu_xuan", "walk_minutes": 4}, {"code": "xiang_zhou", "walk_minutes": 4}]
     },
     {
@@ -48,6 +59,8 @@
       "themes": {"history": 0.5, "nature": 0.5, "architecture": 0.7, "family": 0.4, "photo": 0.6},
       "highlight": "与远香堂西厢相对，可观荷塘全景。",
       "suggested_minutes": 6,
+      "tags": ["skip_if_rush"],
+      "map_x": 48.0, "map_y": 51.0,
       "neighbors": [{"code": "yuan_xiang_tang", "walk_minutes": 4}, {"code": "xiao_fei_hong", "walk_minutes": 3}]
     },
     {
@@ -56,6 +69,8 @@
       "themes": {"history": 0.7, "nature": 0.4, "architecture": 0.9, "family": 0.5, "photo": 0.9},
       "highlight": "陆地上的'石舫'造型，江南园林经典符号之一。",
       "suggested_minutes": 8,
+      "tags": ["child_ok"],
+      "map_x": 41.0, "map_y": 47.0,
       "neighbors": [{"code": "yuan_xiang_tang", "walk_minutes": 4}, {"code": "xiao_fei_hong", "walk_minutes": 3}]
     },
     {
@@ -64,6 +79,8 @@
       "themes": {"history": 0.6, "nature": 0.5, "architecture": 0.8, "family": 0.5, "photo": 0.9},
       "highlight": "苏州园林中唯一的廊桥，朱栏倒影如卧虹。",
       "suggested_minutes": 5,
+      "tags": ["skip_if_rush"],
+      "map_x": 47.0, "map_y": 60.0,
       "neighbors": [{"code": "yi_yu_xuan", "walk_minutes": 3}, {"code": "xiang_zhou", "walk_minutes": 3}, {"code": "jian_shan_lou", "walk_minutes": 5}]
     },
     {
@@ -72,6 +89,8 @@
       "themes": {"history": 0.7, "nature": 0.6, "architecture": 0.8, "family": 0.4, "photo": 0.8},
       "highlight": "得名陶渊明'悠然见南山'，登楼可望北寺塔。",
       "suggested_minutes": 8,
+      "tags": [],
+      "map_x": 39.0, "map_y": 24.0,
       "neighbors": [{"code": "xiao_fei_hong", "walk_minutes": 5}, {"code": "liu_ting_ge", "walk_minutes": 6}]
     },
     {
@@ -80,6 +99,8 @@
       "themes": {"history": 0.7, "nature": 0.7, "architecture": 0.7, "family": 0.4, "photo": 0.7},
       "highlight": "李商隐'留得残荷听雨声'之意境，秋雨听荷绝佳。",
       "suggested_minutes": 7,
+      "tags": ["skip_if_rush"],
+      "map_x": 22.0, "map_y": 27.0,
       "neighbors": [{"code": "jian_shan_lou", "walk_minutes": 6}, {"code": "dao_ying_lou", "walk_minutes": 5}]
     },
     {
@@ -88,6 +109,8 @@
       "themes": {"history": 0.5, "nature": 0.6, "architecture": 0.7, "family": 0.4, "photo": 0.9},
       "highlight": "西部尽头观倒影，水面如镜。",
       "suggested_minutes": 6,
+      "tags": ["skip_if_rush"],
+      "map_x": 30.0, "map_y": 12.0,
       "neighbors": [{"code": "liu_ting_ge", "walk_minutes": 5}]
     }
   ]

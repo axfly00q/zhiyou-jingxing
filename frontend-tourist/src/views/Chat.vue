@@ -20,6 +20,30 @@
 
     <!-- 下：对话面板 -->
     <div class="chat-pane">
+      <!-- B2: 路线进度条（有路线时显示） -->
+      <RouteBar
+        v-if="routeSpots.length"
+        :spots="routeSpots"
+        :current-idx="currentSpotIdx"
+        :total-minutes="routeTotalMinutes"
+        :elapsed-minutes="elapsedMinutes"
+        @checkin="handleCheckin"
+      />
+
+      <!-- D2: 景区平面地图（可折叠，默认收起） -->
+      <div v-if="parkCode === 'zhuozhengyuan' && routeSpots.length" class="map-section">
+        <div class="map-toggle" @click="mapExpanded = !mapExpanded">
+          <span>🗺 景区平面图</span>
+          <span class="map-arrow">{{ mapExpanded ? '▲' : '▼' }}</span>
+        </div>
+        <ParkMap
+          v-if="mapExpanded"
+          :park-code="parkCode"
+          :spots="routeSpots"
+          :current-idx="currentSpotIdx"
+        />
+      </div>
+
       <div class="messages" ref="msgBox">
         <div v-for="(m, i) in messages" :key="i" :class="['msg', m.role]">
           <div class="bubble">
@@ -54,8 +78,10 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, reactive, ref } from 'vue'
-import { chatText, getAvatarStream, getChatSuggestions, interrupt } from '../api.js'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { chatCheckin, chatText, getAvatarStream, getChatPref, getChatSuggestions, interrupt } from '../api.js'
+import RouteBar from '../components/RouteBar.vue'
+import ParkMap from '../components/ParkMap.vue'
 import VrmAvatar from '../components/VrmAvatar.vue'
 
 // 未上传 VRM 时的 demo 资产（three-vrm 官方示例，CDN）
@@ -63,7 +89,60 @@ import VrmAvatar from '../components/VrmAvatar.vue'
 const SAMPLE_VRM_URL = 'https://cdn.jsdelivr.net/gh/pixiv/three-vrm@release/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm'
 
 const parkName = sessionStorage.getItem('park_name') || '苏州园林'
-const parkCode = sessionStorage.getItem('park_code') || ''
+const parkCode = sessionStorage.getItem('park') || 'zhuozhengyuan'
+const mapExpanded = ref(false)
+
+// 路线状态（从 sessionStorage 加载）
+const routeData = JSON.parse(sessionStorage.getItem('route') || 'null')
+const routeSpots = ref((routeData?.spots) || [])
+const routeTotalMinutes = ref(routeData?.total_minutes || 0)
+const currentSpotIdx = ref(0)           // 打卡后才向前推进
+const routeStartTime = ref(Date.now())
+const elapsedMinutes = ref(0)
+let elapsedTimer = null
+
+// 已游览 / 剩余景点名称（用于上下文注入）
+const visitedNames = computed(() =>
+  routeSpots.value.slice(0, currentSpotIdx.value).map(s => s.name)
+)
+const remainingNames = computed(() =>
+  routeSpots.value.slice(currentSpotIdx.value).map(s => s.name)
+)
+// 从偏好设置页静态标签初始化
+function _initPrefSummary() {
+  const stored = sessionStorage.getItem('preferences_summary')
+  if (stored) return stored
+  const pref = JSON.parse(sessionStorage.getItem('pref') || '{}')
+  const labels = { history: '历史人文', nature: '自然风光', architecture: '建筑艺术', family: '亲子', photo: '摄影打卡' }
+  return Object.entries(labels).filter(([k]) => (pref[k] || 0) >= 0.6).map(([, v]) => v).join('、') || ''
+}
+const preferencesSummary = ref(_initPrefSummary())
+
+// 轮询偏好更新（在每次发送消息后延迟调用）
+async function _pollPref() {
+  try {
+    const { preferences_summary } = await getChatPref(sessionId.value)
+    if (preferences_summary && preferences_summary !== preferencesSummary.value) {
+      preferencesSummary.value = preferences_summary
+      sessionStorage.setItem('preferences_summary', preferences_summary)
+    }
+  } catch (e) { /* 静默失败 */ }
+}
+
+// 组装 route_context 上下文（每条消息带过去）
+const buildRouteContext = () => {
+  if (!routeSpots.value.length) return undefined
+  const cur = routeSpots.value[currentSpotIdx.value]
+  return {
+    current_spot_code: cur?.code || null,
+    current_spot_name: cur?.name || null,
+    visited_names: visitedNames.value,
+    remaining_names: remainingNames.value,
+    total_minutes: routeTotalMinutes.value,
+    elapsed_minutes: elapsedMinutes.value,
+    preferences_summary: preferencesSummary.value || null,
+  }
+}
 // Web Speech API（TTS Tier-3 保底）
 const synth = window.speechSynthesis ?? null
 const sessionId = ref(crypto.randomUUID().slice(0, 16))
@@ -114,6 +193,13 @@ let rmsTimer = 0
 let prevMotion = 'idle'
 
 onMounted(async () => {
+  // 启动已用时间计时器
+  if (routeSpots.value.length) {
+    elapsedTimer = setInterval(() => {
+      elapsedMinutes.value = Math.floor((Date.now() - routeStartTime.value) / 60000)
+    }, 30000)
+  }
+
   try {
     const r = await getAvatarStream({ session_id: sessionId.value })
     sessionId.value = r.session_id
@@ -139,9 +225,8 @@ onMounted(async () => {
     console.warn('chat suggestions load failed', e)
   }
 
-  const route = JSON.parse(sessionStorage.getItem('route') || 'null')
-  if (route?.narrative) {
-    push('assistant', route.narrative)
+  if (routeData?.narrative) {
+    push('assistant', routeData.narrative)
     currentEmotion.value = 'joy'
     currentMotion.value = 'wave'
   } else {
@@ -149,6 +234,10 @@ onMounted(async () => {
     currentEmotion.value = 'joy'
     currentMotion.value = 'wave'
   }
+})
+
+onUnmounted(() => {
+  if (elapsedTimer) clearInterval(elapsedTimer)
 })
 
 function push(role, content, citations = []) {
@@ -160,6 +249,12 @@ function applyResponse(r) {
   push('assistant', r.answer, r.citations)
   currentEmotion.value = r.emotion || 'neutral'
   currentMotion.value = r.motion || avatar.default_motion || 'idle'
+  if (r.new_route) {
+    routeSpots.value = r.new_route.spots || []
+    routeTotalMinutes.value = r.new_route.total_minutes || 0
+    currentSpotIdx.value = 0
+    sessionStorage.setItem('route', JSON.stringify(r.new_route))
+  }
   if (r.audio_url) {
     const sep = r.audio_url.startsWith('data:') ? '' : (r.audio_url.includes('?') ? '&' : '?')
     currentAudioUrl.value = r.audio_url + (sep ? `${sep}t=${Date.now()}` : '')
@@ -187,10 +282,50 @@ async function send() {
       session_id: sessionId.value, message: text,
       avatar_code: avatar.code || undefined,
       park_code: parkCode || undefined,
+      route_context: buildRouteContext(),
     })
     applyResponse(r)
+    // 后台轮询偏好更新（延迟 1s 等后端异步分析完成）
+    setTimeout(_pollPref, 1000)
   } catch (e) {
     push('assistant', '抱歉，服务暂时不可用。')
+  } finally {
+    loading.value = false
+  }
+}
+
+// B2: 打卡处理
+async function handleCheckin(spotCode) {
+  if (loading.value) return
+  loading.value = true
+  try {
+    const r = await chatCheckin({
+      session_id: sessionId.value,
+      spot_code: spotCode,
+      park_code: parkCode,
+      avatar_code: avatar.code || undefined,
+      route_context: buildRouteContext(),
+    })
+    // 展示景点介绍
+    push('assistant', r.narrative)
+    currentEmotion.value = r.emotion || 'joy'
+    currentMotion.value = r.motion || 'wave'
+    if (r.audio_url) {
+      currentAudioUrl.value = r.audio_url + (r.audio_url.includes('?') ? '&' : '?') + 't=' + Date.now()
+    }
+    // 推进进度
+    if (currentSpotIdx.value < routeSpots.value.length) {
+      currentSpotIdx.value += 1
+    }
+    // 提示下一站
+    if (r.next_spot_name) {
+      const walkTip = r.next_walk_minutes ? `，步行约 ${r.next_walk_minutes} 分钟` : ''
+      push('assistant', `→ 下一站：**${r.next_spot_name}**${walkTip}`)
+    } else if (currentSpotIdx.value >= routeSpots.value.length) {
+      push('assistant', '🎉 路线全部完成！您已逻遍所有景点，希望本次游览令您尽兴而归！')
+    }
+  } catch (e) {
+    push('assistant', '打卡失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -262,6 +397,7 @@ async function uploadAudio() {
     const resp = await fetch('/api/chat/voice', { method: 'POST', body: fd })
     const r = await resp.json()
     applyResponse(r)
+    setTimeout(_pollPref, 1000)
   } catch (e) {
     push('assistant', '语音识别失败。')
   } finally {
@@ -369,6 +505,10 @@ async function onInterrupt() {
   scrollbar-width: none;
 }
 .presets::-webkit-scrollbar { display: none; }
+.map-section { border-bottom: 1px solid #eee; }
+.map-toggle { display: flex; justify-content: space-between; align-items: center; padding: 6px 14px; cursor: pointer; font-size: 13px; color: #555; background: #f8f9fb; user-select: none; }
+.map-toggle:hover { background: #eef2f9; }
+.map-arrow { color: #999; font-size: 11px; }
 .chip {
   flex: 0 0 auto;
   scroll-snap-align: start;

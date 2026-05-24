@@ -40,19 +40,24 @@ def _theme_score(spot: Spot, pref: TouristPreference) -> float:
 def _pick_start(graph: ParkGraph, pref: TouristPreference) -> Spot:
     if pref.start_spot and graph.get(pref.start_spot):
         return graph.get(pref.start_spot)  # type: ignore[return-value]
-    # 没指定 → 选 theme_score 最高的
+    # 未指定起点 → 优先使用园区真实入口
+    if graph.entrance_code and graph.get(graph.entrance_code):
+        return graph.get(graph.entrance_code)  # type: ignore[return-value]
+    # 最后兜底：选 theme_score 最高的景点
     return max(graph.all(), key=lambda s: _theme_score(s, pref))
 
 
 def _next_step(curr: Spot, graph: ParkGraph, visited: set,
-               pref: TouristPreference) -> Tuple[Optional[Spot], int]:
+               pref: TouristPreference,
+               excluded: Optional[set] = None) -> Tuple[Optional[Spot], int]:
+    excluded = excluded or set()
     best: Optional[Spot] = None
     best_score = -1e9
     best_walk = FALLBACK_WALK_MINUTES
     # 优先在邻居中选
     for n in curr.neighbors:
         s = graph.get(n["code"])
-        if not s or s.code in visited:
+        if not s or s.code in visited or s.code in excluded:
             continue
         score = _theme_score(s, pref) - WALK_PENALTY * n["walk_minutes"]
         if score > best_score:
@@ -60,7 +65,7 @@ def _next_step(curr: Spot, graph: ParkGraph, visited: set,
     if best is not None:
         return best, best_walk
     # 邻居都访问过 → 全局兜底
-    candidates = [s for s in graph.all() if s.code not in visited]
+    candidates = [s for s in graph.all() if s.code not in visited and s.code not in excluded]
     if not candidates:
         return None, 0
     best = max(candidates, key=lambda s: _theme_score(s, pref))
@@ -73,6 +78,19 @@ def plan_route(park: str, pref: TouristPreference) -> Optional[RouteResponse]:
         logger.warning("找不到园区图谱：{}", park)
         return None
 
+    # A4: 硬约束过滤——排除不满足条件的景点（入口不参与过滤）
+    excluded: set[str] = set()
+    entrance = graph.entrance_code
+    for s in graph.all():
+        if s.code == entrance:
+            continue  # 入口始终保留
+        if pref.wheelchair and "wheelchair_ok" not in s.tags:
+            excluded.add(s.code)
+        elif pref.children and "child_ok" not in s.tags:
+            excluded.add(s.code)
+        elif pref.rush and "skip_if_rush" in s.tags:
+            excluded.add(s.code)
+
     start = _pick_start(graph, pref)
     visited = {start.code}
     ordered: List[Tuple[Spot, int]] = [(start, 0)]  # (spot, walk_in_minutes)
@@ -82,7 +100,7 @@ def plan_route(park: str, pref: TouristPreference) -> Optional[RouteResponse]:
     # 跳过占比过大（>80%）的单个超长景点，避免把中部 40 min 拼进 20 min 路线。
     max_per_spot = max(int(pref.duration_min * 0.8), 5)
     while used < pref.duration_min:
-        nxt, walk = _next_step(ordered[-1][0], graph, visited, pref)
+        nxt, walk = _next_step(ordered[-1][0], graph, visited, pref, excluded)
         if nxt is None:
             break
         cost = walk + nxt.suggested_minutes
@@ -104,6 +122,9 @@ def plan_route(park: str, pref: TouristPreference) -> Optional[RouteResponse]:
             themes=[k for k, v in s.themes.items() if v >= 0.5],
             highlight=s.highlight,
             suggested_minutes=s.suggested_minutes,
+            tags=s.tags,
+            map_x=s.map_x,
+            map_y=s.map_y,
         )
         for s, _ in ordered
     ]
@@ -144,3 +165,104 @@ def _fallback_narrative(route: RouteResponse) -> str:
     head = "、".join(s.name for s in route.spots[:3])
     return (f"欢迎来到{route.park}！我为您规划了约{route.total_minutes}分钟的游览，"
             f"重点带您打卡{head}等景点，让我们出发吧～")
+
+
+def plan_remaining(
+    park: str,
+    current_code: str,
+    remaining_codes: List[str],
+    pref: TouristPreference,
+    action: str = "skip",
+    hint: str = "",
+) -> Optional[RouteResponse]:
+    """从当前位置对剩余路线重规划。
+
+    action="skip": 移除 remaining_codes 第一个（当前下一站），从 current 继续贪心；
+    action="add":  在 hint 中模糊匹配景点名，插入到下一站位置，其余不变。
+    返回新的 RouteResponse，total_minutes 为剩余预估时长。
+    """
+    graph = load_park(park)
+    if graph is None:
+        return None
+
+    current = graph.get(current_code)
+    if current is None:
+        return None
+
+    remaining_set = set(remaining_codes)
+
+    if action == "add" and hint:
+        # 模糊匹配：景点名包含 hint 关键词
+        matched = next(
+            (s for s in graph.all() if hint in s.name and s.code not in remaining_set
+             and s.code != current_code),
+            None,
+        )
+        if matched:
+            # 插入到剩余列表第一位
+            new_remaining = [matched.code] + remaining_codes
+            spots_out = []
+            total = 0
+            for code in new_remaining:
+                s = graph.get(code)
+                if s:
+                    spots_out.append(RouteSpot(
+                        code=s.code, name=s.name,
+                        themes=[k for k, v in s.themes.items() if v >= 0.5],
+                        highlight=s.highlight,
+                        suggested_minutes=s.suggested_minutes,
+                        tags=s.tags, map_x=s.map_x, map_y=s.map_y,
+                    ))
+                    total += s.suggested_minutes
+            return RouteResponse(
+                park=graph.park_name, total_minutes=total,
+                score=0.0, spots=spots_out, narrative="",
+            )
+
+    # action=="skip": 移除第一个 remaining，从 current 重新贪心规划剩余
+    skip_code = remaining_codes[0] if remaining_codes else None
+    # 已访问 = 不在 remaining 中，且不是 current
+    visited = {s.code for s in graph.all()
+               if s.code != current_code and s.code not in remaining_set}
+    if skip_code:
+        visited.add(skip_code)
+
+    # 估算剩余时间：用剩余景点平均时长粗估
+    remaining_spots = [graph.get(c) for c in remaining_codes[1:] if graph.get(c)]
+    remaining_total = sum(s.suggested_minutes for s in remaining_spots if s)
+    duration_remaining = max(remaining_total, pref.duration_min // 2)
+
+    ordered: List[Tuple[Spot, int]] = [(current, 0)]
+    visited.add(current_code)
+    used = 0
+
+    max_per_spot = max(int(duration_remaining * 0.8), 5)
+    while used < duration_remaining:
+        nxt, walk = _next_step(ordered[-1][0], graph, visited, pref)
+        if nxt is None:
+            break
+        cost = walk + nxt.suggested_minutes
+        if nxt.suggested_minutes > max_per_spot:
+            visited.add(nxt.code)
+            continue
+        if used + cost > duration_remaining + 5:
+            break
+        ordered.append((nxt, walk))
+        visited.add(nxt.code)
+        used += cost
+
+    spots_out = [
+        RouteSpot(
+            code=s.code, name=s.name,
+            themes=[k for k, v in s.themes.items() if v >= 0.5],
+            highlight=s.highlight,
+            suggested_minutes=s.suggested_minutes,
+            tags=s.tags, map_x=s.map_x, map_y=s.map_y,
+        )
+        for s, _ in ordered[1:]  # 去掉 current 本身，只返回待游览部分
+    ]
+    total = sum(s.suggested_minutes for s in spots_out)
+    return RouteResponse(
+        park=graph.park_name, total_minutes=total,
+        score=0.0, spots=spots_out, narrative="",
+    )

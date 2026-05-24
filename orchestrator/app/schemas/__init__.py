@@ -16,6 +16,9 @@ class TouristPreference(BaseModel):
     photo: float = Field(0.5, ge=0, le=1, description="摄影打卡")
     duration_min: int = Field(120, ge=30, le=480, description="期望游览时长（分钟）")
     start_spot: Optional[str] = Field(None, description="起始景点 code，留空则自动选大门")
+    wheelchair: bool = Field(False, description="需要无障碍/轮椅通道")
+    children: bool = Field(False, description="携带儿童")
+    rush: bool = Field(False, description="时间紧张，跳过次要景点")
 
 
 class RouteSpot(BaseModel):
@@ -24,6 +27,9 @@ class RouteSpot(BaseModel):
     themes: List[str]
     highlight: str
     suggested_minutes: int
+    tags: List[str] = []
+    map_x: Optional[float] = None
+    map_y: Optional[float] = None
 
 
 class RouteResponse(BaseModel):
@@ -34,11 +40,43 @@ class RouteResponse(BaseModel):
     narrative: str = Field(..., description="一段贴合偏好的开场白，由数字人播报")
 
 
+class RouteContext(BaseModel):
+    """前端每次发消息时携带的精简路线状态，用于注入 Dify 上下文。"""
+    current_spot_code: Optional[str] = None
+    current_spot_name: Optional[str] = None
+    visited_names: List[str] = Field(default_factory=list, description="已游览景点名称列表")
+    remaining_names: List[str] = Field(default_factory=list, description="剩余路线景点名称列表")
+    total_minutes: int = 0
+    elapsed_minutes: int = 0
+    preferences_summary: Optional[str] = None
+
+
+class CheckinRequest(BaseModel):
+    """用户到达景点打卡请求。"""
+    session_id: str
+    spot_code: str
+    park_code: str
+    avatar_code: Optional[str] = None
+    route_context: Optional[RouteContext] = None
+
+
+class CheckinResponse(BaseModel):
+    """打卡响应：景点介绍 + TTS + VRM 动作 + 下一站提示。"""
+    narrative: str
+    audio_url: Optional[str] = None
+    emotion: str = "joy"
+    motion: str = "wave"
+    next_spot_name: Optional[str] = None
+    next_walk_minutes: Optional[int] = None
+    checked_in_spot_code: str
+
+
 class ChatTextRequest(BaseModel):
     session_id: str
     message: str
     avatar_code: Optional[str] = None
     park_code: Optional[str] = None
+    route_context: Optional[RouteContext] = None
 
 
 class ChatTextResponse(BaseModel):
@@ -51,6 +89,7 @@ class ChatTextResponse(BaseModel):
     motion: str = Field("idle",
                         description="动作语义：idle/wave/explain/think")
     latency_ms: int = 0
+    new_route: Optional["RouteResponse"] = Field(None, description="重规划后的新路线，非None时前端更新路线状态")
 
 
 class AvatarIn(BaseModel):

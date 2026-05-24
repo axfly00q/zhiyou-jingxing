@@ -53,12 +53,29 @@ export function stepEmotion(vrm) {
   }
 }
 
-/** 把 5 元音权重写入嘴型；weights 缺省时清零。 */
+/** 把 5 元音权重写入嘴型；weights 缺省时清零。
+ *  优化：只让主导元音发力（其他元音清零），并对张嘴量做 1.8 倍增益，
+ *  避免 5 个元音平摊后每个都很微弱、嘴几乎不动的问题。
+ */
 export function applyVowels(vrm, weights) {
   if (!vrm || !vrm.expressionManager) return
-  const w = weights || { aa: 0, ih: 0, ou: 0, ee: 0, oh: 0 }
-  for (const k of ['aa', 'ih', 'ou', 'ee', 'oh']) {
-    try { vrm.expressionManager.setValue(k, Math.max(0, Math.min(1, w[k] || 0))) } catch (_) {}
+  const keys = ['aa', 'ih', 'ou', 'ee', 'oh']
+  if (!weights) {
+    for (const k of keys) {
+      try { vrm.expressionManager.setValue(k, 0) } catch (_) {}
+    }
+    return
+  }
+  // 找主导元音
+  let best = 'aa', bestV = -1
+  for (const k of keys) {
+    const v = weights[k] || 0
+    if (v > bestV) { bestV = v; best = k }
+  }
+  // 用 mouthOpen 决定张嘴幅度（更稳定），主导元音决定形状
+  const open = Math.max(0, Math.min(1, (weights.mouthOpen || bestV || 0) * 1.8))
+  for (const k of keys) {
+    try { vrm.expressionManager.setValue(k, k === best ? open : 0) } catch (_) {}
   }
 }
 

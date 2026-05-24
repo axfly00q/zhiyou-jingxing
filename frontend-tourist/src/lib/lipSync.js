@@ -15,7 +15,7 @@
  */
 
 const FFT_SIZE = 1024
-const SMOOTH = 0.6 // 时间平滑系数（越大越柔）
+const SMOOTH = 0.35 // 时间平滑系数（越大越柔；过大会让嘴型迟缓）
 // 每元音的频段权重（粗略对应共振峰位置，单位 Hz）
 const VOWEL_BANDS = {
   aa: { f1: [600, 1100], f2: [1000, 1500], gain: 1.0 },

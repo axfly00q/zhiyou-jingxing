@@ -53,6 +53,9 @@ services:
       - "8000:8000"
     volumes:
       - ../orchestrator/data:/app/data
+    networks:
+      - default
+      - dify_default
 
   frontend-tourist:
     build:
@@ -78,3 +81,9 @@ services:
 volumes:
   pg_data:
   neo4j_data:
+
+networks:
+  default:
+    name: zhiyou-jingxing_default
+  dify_default:
+    external: true

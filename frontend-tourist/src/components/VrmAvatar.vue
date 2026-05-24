@@ -30,6 +30,7 @@ import {
   stepEmotion,
   MotionController,
 } from '../lib/expressionMap.js'
+import { buildClips as buildProceduralClips } from '../lib/proceduralMotions.js'
 
 const props = defineProps({
   modelUrl: { type: String, default: '' },
@@ -56,10 +57,55 @@ let resizeObs = null
 let currentVrm = null
 let mixer = null
 let motionCtl = null
+let loadToken = 0
 const clipMap = {}
+let hasRealMotion = false  // 是否成功加载了真实动画 clip；否则使用程序化 idle
+let idleElapsed = 0
 
 const lipSync = new LipSyncAnalyzer()
 let audioEl = null
+
+// VRM Humanoid 标准骨骼枚举（避免拼写错误）
+const BONE = {
+  leftUpperArm: 'leftUpperArm',
+  rightUpperArm: 'rightUpperArm',
+  leftLowerArm: 'leftLowerArm',
+  rightLowerArm: 'rightLowerArm',
+  spine: 'spine',
+  chest: 'chest',
+  neck: 'neck',
+  head: 'head',
+}
+
+/** 把模型从 T-pose 改成自然站姿：双臂下垂。 */
+function applyRestPose(vrm) {
+  if (!vrm?.humanoid) return
+  const set = (name, x, y, z) => {
+    const node = vrm.humanoid.getNormalizedBoneNode(name)
+    if (node) node.rotation.set(x, y, z)
+  }
+  // 上臂向身体内侧旋转约 70° 让手臂自然落下（VRM 坐标系：z 轴负向为向下）
+  set(BONE.leftUpperArm,  0, 0, 1.25)   // 约 +72°
+  set(BONE.rightUpperArm, 0, 0, -1.25)  // 约 -72°
+  // 小臂略微弯曲
+  set(BONE.leftLowerArm,  0, -0.15, 0.1)
+  set(BONE.rightLowerArm, 0, 0.15, -0.1)
+}
+
+/** 程序化 idle：呼吸 + 微小头部摆动。dt = elapsed seconds。 */
+function tickProceduralIdle(vrm, elapsed) {
+  if (!vrm?.humanoid) return
+  const breath = Math.sin(elapsed * 1.6) * 0.018   // 呼吸
+  const sway   = Math.sin(elapsed * 0.7) * 0.025   // 上身微摆
+  const headYaw = Math.sin(elapsed * 0.45) * 0.06
+  const headPitch = Math.sin(elapsed * 0.9) * 0.025
+  const chest = vrm.humanoid.getNormalizedBoneNode(BONE.chest)
+  const spine = vrm.humanoid.getNormalizedBoneNode(BONE.spine)
+  const head  = vrm.humanoid.getNormalizedBoneNode(BONE.head)
+  if (chest) { chest.rotation.x = breath; chest.rotation.z = sway * 0.4 }
+  if (spine) { spine.rotation.z = sway }
+  if (head)  { head.rotation.y = headYaw; head.rotation.x = headPitch }
+}
 
 // ---------- three.js 场景 ----------
 function initScene() {
@@ -117,6 +163,7 @@ function disposeVrm() {
 
 // ---------- 加载 VRM ----------
 async function loadVrm(url) {
+  const myToken = ++loadToken
   if (!url) {
     status.value = 'empty'
     statusLabel.value = '未配置'
@@ -131,6 +178,11 @@ async function loadVrm(url) {
     loader.register((parser) => new VRMLoaderPlugin(parser))
     loader.register((parser) => new VRMAnimationLoaderPlugin(parser))
     const gltf = await loader.loadAsync(url)
+    // 加载期间若有新的 loadVrm 调用，丢弃本次结果，避免两个模型叠加
+    if (myToken !== loadToken) {
+      try { VRMUtils.deepDispose(gltf.scene) } catch (_) {}
+      return
+    }
     const vrm = gltf.userData.vrm
     if (!vrm) throw new Error('not a valid VRM file')
     VRMUtils.removeUnnecessaryVertices(gltf.scene)
@@ -145,16 +197,29 @@ async function loadVrm(url) {
     currentVrm = vrm
     mixer = new THREE.AnimationMixer(vrm.scene)
     motionCtl = new MotionController(mixer, {})
+    // 先用程序化 rest pose 解 T-pose（即便没有 vrma 也不会僵直）
+    applyRestPose(vrm)
+    idleElapsed = 0
+    hasRealMotion = false
     status.value = 'ready'
     statusLabel.value = ''
 
-    // 异步加载预制动作（失败不阻塞主流程）
+    // 1）先生成程序化 clip（idle/wave/explain/think/nod/shake）——不需资产文件
+    const proceduralClips = buildProceduralClips(vrm)
+    for (const [k, v] of Object.entries(proceduralClips)) clipMap[k] = v
+
+    // 2）再去加载 vrma；有足够 tracks 的才会覆盖同名程序化 clip
     await loadMotions(props.motions)
-    // 启动默认动作
-    motionCtl.play(props.motion || 'idle')
-    // 应用初始情绪
+    if (myToken !== loadToken) return
+    motionCtl.setClips(clipMap)
+    const wanted = props.motion || 'idle'
+    if (clipMap[wanted]) {
+      hasRealMotion = true
+      motionCtl.play(wanted)
+    }
     applyEmotion(vrm, props.emotion)
   } catch (e) {
+    if (myToken !== loadToken) return
     console.error('[VrmAvatar] load failed', e)
     status.value = 'error'
     statusLabel.value = '!'
@@ -173,7 +238,10 @@ async function loadMotions(motionsMap) {
       const animations = gltf.userData.vrmAnimations || []
       if (!animations.length || !currentVrm) continue
       const clip = createVRMAnimationClip(animations[0], currentVrm)
-      if (clip) clipMap[name] = clip
+      // 过滤掉「假动作」：trakcs 太少（<6）说明只是占位文件，不要让它覆盖我们的 rest pose
+      if (clip && clip.tracks && clip.tracks.length >= 6) {
+        clipMap[name] = clip
+      }
     } catch (e) {
       console.warn(`[VrmAvatar] motion '${name}' load failed:`, e)
     }
@@ -185,8 +253,11 @@ async function loadMotions(motionsMap) {
 function tick() {
   rafId = requestAnimationFrame(tick)
   const dt = clock ? clock.getDelta() : 0
+  idleElapsed += dt
   if (mixer) mixer.update(dt)
   if (currentVrm) {
+    // 没有真实动画时用程序化 idle
+    if (!hasRealMotion) tickProceduralIdle(currentVrm, idleElapsed)
     // 嘴型 + 表情
     if (audioEl && !audioEl.paused) {
       applyVowels(currentVrm, lipSync.read())
