@@ -6,6 +6,7 @@
         <router-link to="/avatars">数字人形象</router-link>
         <router-link to="/knowledge">知识库</router-link>
         <router-link to="/suggestions">服务建议</router-link>
+        <router-link to="/analytics">数据概览</router-link>
       </nav>
       <button class="logout" @click="logout">退出</button>
     </aside>

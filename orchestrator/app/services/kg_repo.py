@@ -28,6 +28,7 @@ JSON 结构（也是 Neo4j 节点属性的镜像）：
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -149,6 +150,11 @@ def _load_from_neo4j(park: str) -> Optional[ParkGraph]:
 
 def load_park(park: str) -> Optional[ParkGraph]:
     """优先 Neo4j → 失败回退 JSON。Neo4j 加载时从 JSON 补充 entrance/tags/坐标。"""
+    return _load_park_cached(park)
+
+
+@lru_cache(maxsize=16)
+def _load_park_cached(park: str) -> Optional[ParkGraph]:
     g = _load_from_neo4j(park)
     if g is not None:
         # 用 JSON 补充 Neo4j 不含的字段

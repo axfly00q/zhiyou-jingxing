@@ -23,8 +23,8 @@ class TTSClient:
             return b""
         payload = {"text": text, "voice": voice or self.default_voice, "format": "mp3"}
         try:
-            # connect 超时 3s（服务不可达时快速失败），read 超时 30s（合成耗时）
-            timeout = httpx.Timeout(connect=3.0, read=30.0, write=5.0, pool=3.0)
+            # connect 超时 0.5s（服务不可达时快速失败），read 超时 30s（合成耗时）
+            timeout = httpx.Timeout(connect=0.5, read=30.0, write=5.0, pool=1.0)
             async with httpx.AsyncClient(timeout=timeout) as client:
                 resp = await client.post(f"{self.base_url}/api/v1/tts", json=payload)
                 resp.raise_for_status()

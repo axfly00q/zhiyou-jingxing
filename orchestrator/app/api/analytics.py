@@ -5,11 +5,11 @@ from datetime import datetime, timedelta
 from typing import List
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import case, func, select
+from sqlalchemy import Integer, case, cast, extract, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.models import Conversation, Message, Suggestion
+from app.models import Avatar, Conversation, Message, Suggestion
 from app.schemas import HotQuestion, OverviewMetrics, SentimentPoint, SuggestionOut
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
@@ -45,12 +45,24 @@ async def overview(days: int = 7, db: AsyncSession = Depends(get_db)):
                Message.created_at >= week_start)
     )).scalar_one()
     satisfaction = (pos / total) if total else 0.0
+    today_neg = (await db.execute(
+        select(func.count(Message.id))
+        .where(Message.role == "user", Message.sentiment == "neg",
+               Message.created_at >= today_start)
+    )).scalar_one()
+    today_total_sent = (await db.execute(
+        select(func.count(Message.id))
+        .where(Message.role == "user", Message.sentiment.is_not(None),
+               Message.created_at >= today_start)
+    )).scalar_one()
+    today_neg_rate = (today_neg / today_total_sent) if today_total_sent else 0.0
     return OverviewMetrics(
         today_sessions=today_sessions,
         today_messages=today_msgs,
         week_sessions=week_sessions,
         avg_latency_ms=round(float(avg_latency), 1),
         satisfaction=round(satisfaction, 3),
+        today_neg_rate=round(today_neg_rate, 3),
     )
 
 
@@ -118,3 +130,71 @@ async def list_suggestions(db: AsyncSession = Depends(get_db)):
         select(Suggestion).order_by(Suggestion.created_at.desc()).limit(50)
     )).scalars().all()
     return rows
+
+
+@router.get("/hourly-traffic")
+async def hourly_traffic(days: int = 7, db: AsyncSession = Depends(get_db)):
+    """按小时（UTC+8）统计用户消息量，展示全天客流峰谷分布。"""
+    start = datetime.utcnow() - timedelta(days=days)
+    hour_expr = cast(
+        extract("hour", Message.created_at + text("INTERVAL '8 hours'")), Integer
+    ).label("hour")
+    q = (
+        select(hour_expr, func.count(Message.id).label("count"))
+        .where(Message.role == "user", Message.created_at >= start)
+        .group_by(hour_expr)
+        .order_by(hour_expr)
+    )
+    rows = (await db.execute(q)).all()
+    bucket = {h: 0 for h in range(24)}
+    for hour, count in rows:
+        bucket[int(hour)] = count
+    return [{"hour": f"{h:02d}", "count": v} for h, v in sorted(bucket.items())]
+
+
+@router.get("/question-categories")
+async def question_categories(days: int = 30, db: AsyncSession = Depends(get_db)):
+    """按 intent 分类统计游客提问分布。"""
+    start = datetime.utcnow() - timedelta(days=days)
+    INTENT_LABELS = {
+        "explain": "景点讲解",
+        "recommend": "景点推荐",
+        "complaint": "投诉反馈",
+        "navigation": "导航路线",
+        "chitchat": "闲聊",
+    }
+    q = (
+        select(Message.intent, func.count(Message.id).label("count"))
+        .where(Message.role == "user", Message.intent.is_not(None),
+               Message.created_at >= start)
+        .group_by(Message.intent)
+        .order_by(func.count(Message.id).desc())
+    )
+    rows = (await db.execute(q)).all()
+    return [
+        {"intent": r[0], "label": INTENT_LABELS.get(r[0], r[0]), "count": r[1]}
+        for r in rows
+    ]
+
+
+@router.get("/avatar-preference")
+async def avatar_preference(days: int = 30, db: AsyncSession = Depends(get_db)):
+    """统计各数字人被选择的会话次数。"""
+    start = datetime.utcnow() - timedelta(days=days)
+    q = (
+        select(
+            Conversation.avatar_id,
+            Avatar.name,
+            func.count(Conversation.id).label("count"),
+        )
+        .outerjoin(Avatar, Conversation.avatar_id == Avatar.code)
+        .where(Conversation.avatar_id.is_not(None), Conversation.started_at >= start)
+        .group_by(Conversation.avatar_id, Avatar.name)
+        .order_by(func.count(Conversation.id).desc())
+        .limit(8)
+    )
+    rows = (await db.execute(q)).all()
+    return [
+        {"avatar_id": r[0], "name": r[1] or r[0], "count": r[2]}
+        for r in rows
+    ]

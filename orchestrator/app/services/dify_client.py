@@ -62,7 +62,7 @@ class DifyClient:
         if conversation_id:
             payload["conversation_id"] = conversation_id
         try:
-            async with httpx.AsyncClient(timeout=60) as client:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(connect=5.0, read=60.0, write=10.0, pool=5.0)) as client:
                 resp = await client.post(f"{self.base_url}/chat-messages",
                                          json=payload, headers=self._headers)
                 resp.raise_for_status()
@@ -87,9 +87,12 @@ class DifyClient:
         }
 
     async def stream(self, query: str, user: str,
-                     conversation_id: Optional[str] = None) -> AsyncIterator[str]:
+                     conversation_id: Optional[str] = None,
+                     inputs: Optional[dict] = None,
+                     on_conversation_id=None) -> AsyncIterator[str]:
         """流式调用（SSE），按 token 产出 answer 片段。
 
+        on_conversation_id: 可选回调 callable(str)，首次拿到 conversation_id 时调用一次。
         任何 HTTP / 网络 / JSON 错误都会被捕获并以一段提示文本产出，避免向
         WebSocket handler 抛出未处理异常导致连接被静默关闭。
         """
@@ -100,12 +103,12 @@ class DifyClient:
             "query": query,
             "user": user,
             "response_mode": "streaming",
-            "inputs": {},
+            "inputs": inputs or {},
         }
         if conversation_id:
             payload["conversation_id"] = conversation_id
         try:
-            async with httpx.AsyncClient(timeout=120) as client:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(connect=5.0, read=120.0, write=10.0, pool=5.0)) as client:
                 async with client.stream("POST", f"{self.base_url}/chat-messages",
                                          json=payload, headers=self._headers) as resp:
                     if resp.status_code >= 400:
@@ -115,6 +118,7 @@ class DifyClient:
                         return
                     buf = ""
                     in_think = False
+                    _cid_fired = False
                     async for line in resp.aiter_lines():
                         if not line or not line.startswith("data:"):
                             continue
@@ -125,6 +129,10 @@ class DifyClient:
                             evt = json.loads(chunk)
                         except json.JSONDecodeError:
                             continue
+                        # 首次拿到 conversation_id 时回调
+                        if not _cid_fired and on_conversation_id and evt.get("conversation_id"):
+                            on_conversation_id(evt["conversation_id"])
+                            _cid_fired = True
                         if evt.get("event") not in ("message", "agent_message"):
                             continue
                         token = evt.get("answer", "")
@@ -153,9 +161,6 @@ class DifyClient:
                             buf = buf[-7:]
                     if buf and not in_think:
                         yield buf
-        except httpx.HTTPError as exc:
-            logger.exception("Dify 流式网络错误：{}", exc)
-            yield "（网络不稳定，请稍后重试）"
         except httpx.HTTPError as exc:
             logger.exception("Dify 流式网络错误：{}", exc)
             yield "（网络不稳定，请稍后重试）"

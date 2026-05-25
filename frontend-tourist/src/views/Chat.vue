@@ -53,7 +53,7 @@
             </div>
           </div>
         </div>
-        <div v-if="loading" class="msg assistant"><div class="bubble">正在思考…</div></div>
+        <div v-if="loading && !messages[messages.length-1]?.content" class="msg assistant"><div class="bubble">正在思考…</div></div>
       </div>
 
       <!-- 预设问题 chips（静态占位，后续接 /chat/suggestions） -->
@@ -277,18 +277,72 @@ async function send() {
   push('user', text)
   input.value = ''
   loading.value = true
+
+  // 流式占位气泡
+  const msgIdx = messages.value.length
+  messages.value.push({ role: 'assistant', content: '', citations: [] })
+  nextTick(() => { msgBox.value && (msgBox.value.scrollTop = msgBox.value.scrollHeight) })
+
   try {
-    const r = await chatText({
-      session_id: sessionId.value, message: text,
-      avatar_code: avatar.code || undefined,
-      park_code: parkCode || undefined,
-      route_context: buildRouteContext(),
+    const resp = await fetch('/api/chat/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: sessionId.value,
+        message: text,
+        avatar_code: avatar.code || undefined,
+        park_code: parkCode || undefined,
+        route_context: buildRouteContext(),
+      }),
     })
-    applyResponse(r)
-    // 后台轮询偏好更新（延迟 1s 等后端异步分析完成）
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+
+    const reader = resp.body.getReader()
+    const decoder = new TextDecoder()
+    let sseBuffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      sseBuffer += decoder.decode(value, { stream: true })
+      const lines = sseBuffer.split('\n')
+      sseBuffer = lines.pop()           // 保留未完整的行
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        let evt
+        try { evt = JSON.parse(line.slice(6)) } catch { continue }
+
+        if (evt.type === 'token') {
+          messages.value[msgIdx].content += evt.text
+          nextTick(() => { msgBox.value && (msgBox.value.scrollTop = msgBox.value.scrollHeight) })
+        } else if (evt.type === 'done') {
+          currentEmotion.value = evt.emotion || 'neutral'
+          currentMotion.value = evt.motion || avatar.default_motion || 'idle'
+          if (evt.new_route) {
+            routeSpots.value = evt.new_route.spots || []
+            routeTotalMinutes.value = evt.new_route.total_minutes || 0
+            currentSpotIdx.value = 0
+            sessionStorage.setItem('route', JSON.stringify(evt.new_route))
+          }
+          if (evt.audio_url) {
+            const sep = evt.audio_url.includes('?') ? '&' : '?'
+            currentAudioUrl.value = evt.audio_url + sep + 't=' + Date.now()
+          } else {
+            currentAudioUrl.value = ''
+            if (synth && messages.value[msgIdx].content) {
+              const utt = new SpeechSynthesisUtterance(messages.value[msgIdx].content)
+              utt.lang = 'zh-CN'; synth.cancel(); synth.speak(utt)
+            }
+          }
+        }
+      }
+    }
     setTimeout(_pollPref, 1000)
   } catch (e) {
-    push('assistant', '抱歉，服务暂时不可用。')
+    if (!messages.value[msgIdx]?.content) {
+      messages.value[msgIdx] = { role: 'assistant', content: '抱歉，服务暂时不可用。', citations: [] }
+    }
   } finally {
     loading.value = false
   }
@@ -559,8 +613,8 @@ textarea:focus { border-color: #2c7be5; }
 /* 横屏 / 宽屏（开发机调试）：恢复左右双栏 */
 @media (orientation: landscape) and (min-width: 1024px) {
   .layout { flex-direction: row; }
-  .avatar-pane { flex: 1 1 50%; }
-  .chat-pane { flex: 1 1 50%; border-radius: 0; box-shadow: none; }
+  .avatar-pane { flex: 1 1 50%; min-width: 0; }
+  .chat-pane { flex: 1 1 50%; border-radius: 0; box-shadow: none; min-width: 0; overflow: hidden; }
   .top-bar { color: #fff; }
 }
 </style>

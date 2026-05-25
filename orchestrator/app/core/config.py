@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     neo4j_password: str = "neo4j_pwd"
 
     # Dify
-    dify_base_url: str = "http://localhost:5001/v1"
+    dify_base_url: str = "http://localhost/v1"
     dify_api_key: str = ""
     # 知识库 dataset id（在 Dify 后台「知识库」详情 URL 中可见）；填写后 /admin/knowledge/upload 会同步入库
     dify_dataset_id: str = ""

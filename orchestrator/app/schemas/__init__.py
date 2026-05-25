@@ -128,6 +128,7 @@ class OverviewMetrics(BaseModel):
     week_sessions: int
     avg_latency_ms: float
     satisfaction: float = Field(..., description="正向比例 0~1")
+    today_neg_rate: float = Field(0.0, description="今日负面对话比例 0~1")
 
 
 class HotQuestion(BaseModel):

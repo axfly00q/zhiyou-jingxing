@@ -55,7 +55,7 @@ const props = defineProps({
 
 defineEmits(['checkin'])
 
-const expanded = ref(true)
+const expanded = ref(false)
 
 const checkedCount = computed(() => props.currentIdx)
 const remainingMinutes = computed(() =>

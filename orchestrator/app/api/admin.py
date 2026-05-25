@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
 from pathlib import Path
 from typing import List
 
@@ -172,6 +173,24 @@ async def upload_knowledge(file: UploadFile = File(...)):
 
     return {"ok": True, "saved_as": fp.name, "synced": synced,
             "document_id": document_id, "error": error}
+
+
+@router.get("/knowledge/list", dependencies=[Depends(verify_admin)])
+async def list_knowledge():
+    """返回已上传知识库文件列表（按修改时间倒序）。"""
+    target = Path(__file__).resolve().parents[2] / "data" / "uploads"
+    if not target.exists():
+        return []
+    files = []
+    for fp in sorted(target.iterdir(), key=lambda f: f.stat().st_mtime, reverse=True):
+        if fp.is_file():
+            stat = fp.stat()
+            files.append({
+                "name": fp.name,
+                "size": stat.st_size,
+                "updated_at": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+            })
+    return files
 
 
 # ---- 服务建议状态管理 ----
