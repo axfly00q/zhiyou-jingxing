@@ -13,7 +13,10 @@
       />
       <div class="top-bar">
         <strong class="title">{{ parkName }}</strong>
-        <a href="#/preference" class="back">← 重新规划</a>
+        <div class="top-bar-right">
+          <button class="end-tour-btn" @click="startEndFlow">结束游览</button>
+          <a href="#/preference" class="back">← 重新规划</a>
+        </div>
       </div>
       <button class="interrupt-btn" @click="onInterrupt" title="打断播报">⏸</button>
     </div>
@@ -74,6 +77,37 @@
         </div>
       </div>
     </div>
+
+    <!-- 结束游览弹窗组 -->
+    <QuizModal
+      v-if="showQuiz"
+      :spots="quizSpots"
+      :session-id="sessionId"
+      :park-code="parkCode"
+      @complete="onQuizComplete"
+      @skip="onQuizSkip"
+    />
+    <RatingModal
+      v-if="showRating"
+      :session-id="sessionId"
+      :park-code="parkCode"
+      :visited-spots="visitedNames"
+      :elapsed-minutes="elapsedMinutes"
+      @done="onRatingDone"
+    />
+    <BadgeModal
+      v-if="showBadge"
+      :badge="pendingBadge"
+      @close="showBadge = false"
+    />
+    <ShareCard
+      v-if="showShare"
+      :session-id="sessionId"
+      :park-code="parkCode"
+      :visited-spots="visitedNames"
+      :elapsed-minutes="elapsedMinutes"
+      @close="showShare = false"
+    />
   </div>
 </template>
 
@@ -83,6 +117,10 @@ import { chatCheckin, chatText, getAvatarStream, getChatPref, getChatSuggestions
 import RouteBar from '../components/RouteBar.vue'
 import ParkMap from '../components/ParkMap.vue'
 import VrmAvatar from '../components/VrmAvatar.vue'
+import RatingModal from '../components/RatingModal.vue'
+import BadgeModal from '../components/BadgeModal.vue'
+import QuizModal from '../components/QuizModal.vue'
+import ShareCard from '../components/ShareCard.vue'
 
 // 未上传 VRM 时的 demo 资产（three-vrm 官方示例，CDN）
 // 生产环境请到 admin 后台上传自己的 .vrm
@@ -91,6 +129,14 @@ const SAMPLE_VRM_URL = 'https://cdn.jsdelivr.net/gh/pixiv/three-vrm@release/pack
 const parkName = sessionStorage.getItem('park_name') || '苏州园林'
 const parkCode = sessionStorage.getItem('park') || 'zhuozhengyuan'
 const mapExpanded = ref(false)
+
+// 结束游览弹窗状态
+const showQuiz = ref(false)
+const showRating = ref(false)
+const showBadge = ref(false)
+const showShare = ref(false)
+const pendingBadge = ref(null)
+const quizSpots = ref([])
 
 // 路线状态（从 sessionStorage 加载）
 const routeData = JSON.parse(sessionStorage.getItem('route') || 'null')
@@ -371,12 +417,17 @@ async function handleCheckin(spotCode) {
     if (currentSpotIdx.value < routeSpots.value.length) {
       currentSpotIdx.value += 1
     }
+    // 处理成就徽章
+    if (r.badge) {
+      pendingBadge.value = r.badge
+      showBadge.value = true
+    }
     // 提示下一站
     if (r.next_spot_name) {
       const walkTip = r.next_walk_minutes ? `，步行约 ${r.next_walk_minutes} 分钟` : ''
       push('assistant', `→ 下一站：**${r.next_spot_name}**${walkTip}`)
     } else if (currentSpotIdx.value >= routeSpots.value.length) {
-      push('assistant', '🎉 路线全部完成！您已逻遍所有景点，希望本次游览令您尽兴而归！')
+      push('assistant', '🎉 路线全部完成！您已游遍所有景点，希望本次游览令您尽兴而归！')
     }
   } catch (e) {
     push('assistant', '打卡失败，请稍后重试。')
@@ -464,6 +515,34 @@ async function onInterrupt() {
   try { avatarRef.value?.stop() } catch (e) {}
   try { await interrupt(sessionId.value) } catch (e) {}
 }
+
+// 结束游览流程：先测验 → 再评分 → 再分享
+function startEndFlow() {
+  // 收集已访问景点中有 quiz 的
+  const visited = routeSpots.value.slice(0, currentSpotIdx.value)
+  const withQuiz = visited.filter(s => s.quiz && s.quiz.length > 0)
+  quizSpots.value = withQuiz
+  if (withQuiz.length > 0) {
+    showQuiz.value = true
+  } else {
+    showRating.value = true
+  }
+}
+
+function onQuizComplete() {
+  showQuiz.value = false
+  showRating.value = true
+}
+
+function onQuizSkip() {
+  showQuiz.value = false
+  showRating.value = true
+}
+
+function onRatingDone() {
+  showRating.value = false
+  showShare.value = true
+}
 </script>
 
 <style scoped>
@@ -496,12 +575,28 @@ async function onInterrupt() {
   pointer-events: none;
 }
 .top-bar .title { font-size: clamp(18px, 3.2vw, 28px); letter-spacing: 1px; }
+.top-bar-right {
+  display: flex; align-items: center; gap: 10px;
+  pointer-events: auto;
+}
 .top-bar .back {
   pointer-events: auto;
   color: #a8c4ff; text-decoration: none;
   font-size: clamp(13px, 2vw, 18px);
   background: rgba(0,0,0,0.25); padding: 8px 14px; border-radius: 999px;
 }
+.end-tour-btn {
+  pointer-events: auto;
+  background: rgba(255,160,0,0.85);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: clamp(13px, 2vw, 18px);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+.end-tour-btn:active { background: rgba(255,140,0,0.95); }
 .interrupt-btn {
   position: absolute;
   right: 20px; bottom: 20px;

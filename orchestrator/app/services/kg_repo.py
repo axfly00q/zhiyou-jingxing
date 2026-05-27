@@ -39,14 +39,15 @@ DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "kg"
 
 
 class Spot:
-    __slots__ = ("code", "name", "themes", "highlight", "suggested_minutes", "neighbors", "tags", "map_x", "map_y")
+    __slots__ = ("code", "name", "themes", "highlight", "suggested_minutes", "neighbors", "tags", "map_x", "map_y", "quiz")
 
     def __init__(self, code: str, name: str, themes: Dict[str, float],
                  highlight: str, suggested_minutes: int,
                  neighbors: List[dict],
                  tags: Optional[List[str]] = None,
                  map_x: Optional[float] = None,
-                 map_y: Optional[float] = None) -> None:
+                 map_y: Optional[float] = None,
+                 quiz: Optional[List[dict]] = None) -> None:
         self.code = code
         self.name = name
         self.themes = themes
@@ -56,6 +57,7 @@ class Spot:
         self.tags: List[str] = tags or []
         self.map_x: Optional[float] = map_x
         self.map_y: Optional[float] = map_y
+        self.quiz: List[dict] = quiz or []
 
     def neighbor_minutes(self, other_code: str) -> Optional[int]:
         for n in self.neighbors:
@@ -90,6 +92,7 @@ def _load_from_json(park: str) -> Optional[ParkGraph]:
         tags=s.get("tags", []),
         map_x=s.get("map_x"),
         map_y=s.get("map_y"),
+        quiz=s.get("quiz", []),
     ) for s in raw["spots"]]
     return ParkGraph(raw["park"], raw["park_name"], spots,
                      entrance_code=raw.get("entrance"))

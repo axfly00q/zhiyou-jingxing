@@ -125,6 +125,7 @@ def plan_route(park: str, pref: TouristPreference) -> Optional[RouteResponse]:
             tags=s.tags,
             map_x=s.map_x,
             map_y=s.map_y,
+            quiz=s.quiz,
         )
         for s, _ in ordered
     ]
@@ -258,6 +259,7 @@ def plan_remaining(
             highlight=s.highlight,
             suggested_minutes=s.suggested_minutes,
             tags=s.tags, map_x=s.map_x, map_y=s.map_y,
+            quiz=s.quiz,
         )
         for s, _ in ordered[1:]  # 去掉 current 本身，只返回待游览部分
     ]

@@ -12,6 +12,7 @@
     "@pixiv/three-vrm": "^3.5.2",
     "@pixiv/three-vrm-animation": "^3.5.2",
     "axios": "^1.6.8",
+    "html2canvas": "^1.4.1",
     "pinia": "^2.1.7",
     "three": "^0.160.1",
     "vue": "^3.4.0",

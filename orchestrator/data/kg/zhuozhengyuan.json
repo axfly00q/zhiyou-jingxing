@@ -11,7 +11,12 @@
       "suggested_minutes": 5,
       "tags": ["wheelchair_ok", "child_ok"],
       "map_x": 69.0, "map_y": 86.0,
-      "neighbors": [{"code": "lan_xue_tang", "walk_minutes": 3}]
+      "neighbors": [{"code": "lan_xue_tang", "walk_minutes": 3}],
+      "quiz": [
+        {"q": "拙政园是哪个朝代始建的？", "options": ["唐代", "宋代", "明代", "清代"], "answer": 2, "fact": "拙政园始建于明正德年间（16世纪初），距今已有500余年历史。"},
+        {"q": "拙政园属于哪种类型的古典园林？", "options": ["皇家园林", "私家园林", "寺庙园林", "军事园林"], "answer": 1, "fact": "拙政园是典型的江南私家园林，也是苏州现存最大的古典园林。"},
+        {"q": "拙政园是哪年被列为世界文化遗产的？", "options": ["1987年", "1991年", "1997年", "2000年"], "answer": 2, "fact": "1997年，拙政园作为'苏州古典园林'的代表之一被列入世界遗产名录。"}
+      ]
     },
     {
       "code": "lan_xue_tang",
@@ -21,7 +26,12 @@
       "suggested_minutes": 8,
       "tags": ["wheelchair_ok", "child_ok"],
       "map_x": 66.0, "map_y": 70.0,
-      "neighbors": [{"code": "fu_rong_xie", "walk_minutes": 4}, {"code": "yuan_xiang_tang", "walk_minutes": 6}]
+      "neighbors": [{"code": "fu_rong_xie", "walk_minutes": 4}, {"code": "yuan_xiang_tang", "walk_minutes": 6}],
+      "quiz": [
+        {"q": "兰雪堂的名字出自哪位诗人的诗句？", "options": ["杜甫", "苏轼", "李白", "白居易"], "answer": 2, "fact": "兰雪堂取名自李白诗句'独立天地间，清风洒兰雪'，清新脱俗。"},
+        {"q": "兰雪堂位于拙政园的哪个区域？", "options": ["西部", "中部", "东部", "南部"], "answer": 2, "fact": "兰雪堂位于拙政园东部，是游览东园的第一个重要景点。"},
+        {"q": "兰雪堂是什么功能的建筑？", "options": ["藏书楼", "起居厅", "园主会客厅", "祭祀场所"], "answer": 2, "fact": "兰雪堂是东园的主厅，园主在此会客、游赏东园起景。"}
+      ]
     },
     {
       "code": "fu_rong_xie",
@@ -31,7 +41,12 @@
       "suggested_minutes": 7,
       "tags": ["child_ok", "skip_if_rush"],
       "map_x": 73.0, "map_y": 57.0,
-      "neighbors": [{"code": "lan_xue_tang", "walk_minutes": 4}, {"code": "tian_quan_ting", "walk_minutes": 5}]
+      "neighbors": [{"code": "lan_xue_tang", "walk_minutes": 4}, {"code": "tian_quan_ting", "walk_minutes": 5}],
+      "quiz": [
+        {"q": "芙蓉榭中'芙蓉'指的是哪种植物？", "options": ["牡丹", "荷花", "芙蓉花", "玫瑰"], "answer": 1, "fact": "芙蓉即莲花（荷花）的别称，芙蓉榭以观荷为主题，夏日荷香弥漫。"},
+        {"q": "芙蓉榭建在水的什么位置？", "options": ["水中央", "水边陆地", "桥上", "水面半悬"], "answer": 3, "fact": "芙蓉榭半架于水面之上，前廊贴水，独具临水悬空之美。"},
+        {"q": "游览芙蓉榭最佳的季节是？", "options": ["春季赏梅", "夏季观荷", "秋季赏枫", "冬季踏雪"], "answer": 1, "fact": "芙蓉榭夏季荷花盛开，荷香弥漫，是全园最具诗意的赏荷之所。"}
+      ]
     },
     {
       "code": "tian_quan_ting",
@@ -41,7 +56,12 @@
       "suggested_minutes": 6,
       "tags": ["child_ok", "skip_if_rush"],
       "map_x": 64.0, "map_y": 56.0,
-      "neighbors": [{"code": "fu_rong_xie", "walk_minutes": 5}, {"code": "yuan_xiang_tang", "walk_minutes": 5}]
+      "neighbors": [{"code": "fu_rong_xie", "walk_minutes": 5}, {"code": "yuan_xiang_tang", "walk_minutes": 5}],
+      "quiz": [
+        {"q": "天泉亭中的古井据传是哪个朝代的遗物？", "options": ["唐代", "宋代", "元代", "明代"], "answer": 2, "fact": "古井相传是元代大弘寺的遗物，见证了这片土地的悠久历史。"},
+        {"q": "天泉亭在建筑形制上属于哪种类型？", "options": ["四角亭", "六角亭", "八角亭", "圆亭"], "answer": 2, "fact": "天泉亭为八角重檐亭，是江南园林中常见的典雅建筑样式。"},
+        {"q": "'天泉'这个名字寓意什么？", "options": ["天上的星河", "永不枯竭的泉水", "天空的倒影", "天降甘露"], "answer": 1, "fact": "天泉亭以亭中古井命名，古井泉水清冽，四季不竭，故称天泉。"}
+      ]
     },
     {
       "code": "yuan_xiang_tang",
@@ -51,7 +71,12 @@
       "suggested_minutes": 12,
       "tags": ["wheelchair_ok", "child_ok"],
       "map_x": 52.0, "map_y": 54.0,
-      "neighbors": [{"code": "tian_quan_ting", "walk_minutes": 5}, {"code": "yi_yu_xuan", "walk_minutes": 4}, {"code": "xiang_zhou", "walk_minutes": 4}]
+      "neighbors": [{"code": "tian_quan_ting", "walk_minutes": 5}, {"code": "yi_yu_xuan", "walk_minutes": 4}, {"code": "xiang_zhou", "walk_minutes": 4}],
+      "quiz": [
+        {"q": "远香堂的名字来自哪篇著名的散文？", "options": ["《岳阳楼记》", "《醉翁亭记》", "《爱莲说》", "《桃花源记》"], "answer": 2, "fact": "远香堂取名自北宋周敦颐《爱莲说》中'香远益清，亭亭净植'的名句。"},
+        {"q": "远香堂是拙政园中部哪种功能的建筑？", "options": ["藏书楼", "主厅堂", "花房", "船坞"], "answer": 1, "fact": "远香堂是中部的主厅堂，园主在此起居会客，三面环水、四面开窗。"},
+        {"q": "远香堂四面的墙体有何特别之处？", "options": ["用彩色玻璃装饰", "全部开窗无实墙", "挂有名人字画", "砌有假山"], "answer": 1, "fact": "远香堂四面皆窗，无实墙，坐于堂内可饱览全园荷池与四时景色。"}
+      ]
     },
     {
       "code": "yi_yu_xuan",
@@ -61,7 +86,12 @@
       "suggested_minutes": 6,
       "tags": ["skip_if_rush"],
       "map_x": 48.0, "map_y": 51.0,
-      "neighbors": [{"code": "yuan_xiang_tang", "walk_minutes": 4}, {"code": "xiao_fei_hong", "walk_minutes": 3}]
+      "neighbors": [{"code": "yuan_xiang_tang", "walk_minutes": 4}, {"code": "xiao_fei_hong", "walk_minutes": 3}],
+      "quiz": [
+        {"q": "倚玉轩中'玉'指的是什么？", "options": ["玉石装饰", "修竹如玉", "玉兰花", "荷花"], "answer": 1, "fact": "'倚玉'典出《诗经》'如切如磋，如琢如磨'，此处以修竹喻玉，亦指园中竹影婆娑之景。"},
+        {"q": "倚玉轩与哪个建筑相对而望？", "options": ["香洲", "小飞虹", "远香堂", "见山楼"], "answer": 2, "fact": "倚玉轩在远香堂西侧，两者隔荷塘相望，视线开阔，景色绝佳。"},
+        {"q": "从倚玉轩向西可以看到什么著名景观？", "options": ["北寺塔", "小飞虹廊桥", "香洲石舫", "见山楼"], "answer": 2, "fact": "从倚玉轩向西望，可见香洲石舫在荷池中静卧，构成一幅绝美画面。"}
+      ]
     },
     {
       "code": "xiang_zhou",
@@ -71,7 +101,12 @@
       "suggested_minutes": 8,
       "tags": ["child_ok"],
       "map_x": 41.0, "map_y": 47.0,
-      "neighbors": [{"code": "yuan_xiang_tang", "walk_minutes": 4}, {"code": "xiao_fei_hong", "walk_minutes": 3}]
+      "neighbors": [{"code": "yuan_xiang_tang", "walk_minutes": 4}, {"code": "xiao_fei_hong", "walk_minutes": 3}],
+      "quiz": [
+        {"q": "香洲的建筑形式模仿的是什么？", "options": ["帆船", "古代画舫/石舫", "渔船", "竹筏"], "answer": 1, "fact": "香洲是'旱舫'，外形模仿船只停于水边，是江南园林造园的经典手法。"},
+        {"q": "香洲中'香'字指的是什么？", "options": ["香料", "荷香", "桂香", "茶香"], "answer": 1, "fact": "香洲以荷花之香命名，与远香堂遥相呼应，共同点缀中部荷池景色。"},
+        {"q": "石舫这种造型在园林中寓意什么？", "options": ["权贵象征", "坚如磐石不随波逐流", "招财进宝", "一帆风顺"], "answer": 1, "fact": "旱船（石舫）在中国古典园林中寓意'坚如磐石、稳立不移'，亦有招揽四方宾客之意。"}
+      ]
     },
     {
       "code": "xiao_fei_hong",
@@ -81,7 +116,12 @@
       "suggested_minutes": 5,
       "tags": ["skip_if_rush"],
       "map_x": 47.0, "map_y": 60.0,
-      "neighbors": [{"code": "yi_yu_xuan", "walk_minutes": 3}, {"code": "xiang_zhou", "walk_minutes": 3}, {"code": "jian_shan_lou", "walk_minutes": 5}]
+      "neighbors": [{"code": "yi_yu_xuan", "walk_minutes": 3}, {"code": "xiang_zhou", "walk_minutes": 3}, {"code": "jian_shan_lou", "walk_minutes": 5}],
+      "quiz": [
+        {"q": "小飞虹在苏州园林中有何独特之处？", "options": ["最高的亭子", "唯一的廊桥", "最大的湖石", "最长的回廊"], "answer": 1, "fact": "小飞虹是苏州园林中极为罕见的廊桥，朱红栏杆的倒影在水中宛如彩虹卧波。"},
+        {"q": "'飞虹'的意象来自什么自然景观？", "options": ["流星", "彩虹", "飞瀑", "闪电"], "answer": 1, "fact": "飞虹取彩虹之意，廊桥红栏在水面的倒影宛如虹桥飞渡，轻盈如彩虹。"},
+        {"q": "小飞虹廊桥的主要颜色是？", "options": ["白色", "黑色", "朱红色", "青绿色"], "answer": 2, "fact": "小飞虹以朱红色栏杆为特色，在绿水青石的映衬下格外鲜艳夺目。"}
+      ]
     },
     {
       "code": "jian_shan_lou",
@@ -91,7 +131,12 @@
       "suggested_minutes": 8,
       "tags": [],
       "map_x": 39.0, "map_y": 24.0,
-      "neighbors": [{"code": "xiao_fei_hong", "walk_minutes": 5}, {"code": "liu_ting_ge", "walk_minutes": 6}]
+      "neighbors": [{"code": "xiao_fei_hong", "walk_minutes": 5}, {"code": "liu_ting_ge", "walk_minutes": 6}],
+      "quiz": [
+        {"q": "见山楼的名字来自哪位诗人的哪句诗？", "options": ["李白'举头望明月'", "陶渊明'悠然见南山'", "王维'独坐幽篁里'", "苏轼'但愿人长久'"], "answer": 1, "fact": "见山楼取意陶渊明《饮酒》'采菊东篱下，悠然见南山'，寄托归隐田园之志。"},
+        {"q": "从见山楼向北远望能看到什么？", "options": ["虎丘塔", "北寺塔", "报恩寺塔", "云岩寺塔"], "answer": 1, "fact": "在见山楼上向北望，可见苏州地标北寺塔（报恩寺塔），园林借景于外，扩大了视野。"},
+        {"q": "见山楼属于哪种建筑类型？", "options": ["单层平房", "两层楼阁", "水上亭台", "地下室"], "answer": 1, "fact": "见山楼是两层楼阁式建筑，下层临水，上层登高望远，是中部景区的制高点之一。"}
+      ]
     },
     {
       "code": "liu_ting_ge",
@@ -101,7 +146,12 @@
       "suggested_minutes": 7,
       "tags": ["skip_if_rush"],
       "map_x": 22.0, "map_y": 27.0,
-      "neighbors": [{"code": "jian_shan_lou", "walk_minutes": 6}, {"code": "dao_ying_lou", "walk_minutes": 5}]
+      "neighbors": [{"code": "jian_shan_lou", "walk_minutes": 6}, {"code": "dao_ying_lou", "walk_minutes": 5}],
+      "quiz": [
+        {"q": "留听阁的命名出自哪位诗人的哪句诗？", "options": ["杜甫'留连戏蝶时时舞'", "李商隐'留得残荷听雨声'", "白居易'留念草萋萋'", "苏轼'留取丹心照汗青'"], "answer": 1, "fact": "留听阁取意晚唐诗人李商隐《宿骆氏亭寄怀崔雍崔衮》'留得残荷听雨声'，秋雨绵绵最能感受此意。"},
+        {"q": "在留听阁欣赏什么景色最为著名？", "options": ["春日梅花", "夏日荷花", "秋日残荷听雨", "冬日雪景"], "answer": 2, "fact": "留听阁以秋雨打残荷的声音和意境著称，是秋季游园最具诗意的听觉体验。"},
+        {"q": "留听阁位于拙政园的哪个区域？", "options": ["东部", "中部", "西部", "南部"], "answer": 2, "fact": "留听阁位于拙政园西部，是西园精华景点之一。"}
+      ]
     },
     {
       "code": "dao_ying_lou",
@@ -111,7 +161,12 @@
       "suggested_minutes": 6,
       "tags": ["skip_if_rush"],
       "map_x": 30.0, "map_y": 12.0,
-      "neighbors": [{"code": "liu_ting_ge", "walk_minutes": 5}]
+      "neighbors": [{"code": "liu_ting_ge", "walk_minutes": 5}],
+      "quiz": [
+        {"q": "倒影楼最著名的拍摄角度是什么？", "options": ["俯拍全园", "水中倒影", "远眺北寺塔", "仰拍屋檐"], "answer": 1, "fact": "倒影楼临水而建，平静的水面将楼阁完整倒映，形成'虚实相生'的绝美构图。"},
+        {"q": "倒影楼位于拙政园的哪个部分？", "options": ["东部尽头", "中部中央", "西部尽头", "南部门口"], "answer": 2, "fact": "倒影楼位于拙政园西部最西端，是游览西园的收尾景点。"},
+        {"q": "水中倒影在中国园林美学中体现了什么哲学思想？", "options": ["儒家仁义", "道家虚实相生", "佛家因果轮回", "法家严刑峻法"], "answer": 1, "fact": "园林以水面造倒影，体现道家'虚实相生、有无相成'的哲学，是江南园林造景的核心美学。"}
+      ]
     }
   ]
 }

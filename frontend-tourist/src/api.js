@@ -12,4 +12,11 @@ export const getChatSuggestions = (park, limit = 5) => api.get('/chat/suggestion
 export const getHotQuestions = (limit = 5) => api.get('/analytics/hot-questions', { params: { limit } }).then(r => r.data)
 export const getChatPref = (sessionId) => api.get(`/chat/pref/${sessionId}`).then(r => r.data)
 
+export const submitReview = (payload) => api.post('/chat/review', payload).then(r => r.data)
+export const getSummary = (payload) => api.post('/chat/summary', payload).then(r => r.data)
+export const getShareCard = (payload) => api.post('/chat/share-card', payload).then(r => r.data)
+export const getBadges = (sessionId) => api.get(`/chat/badges/${sessionId}`).then(r => r.data)
+export const unlockBadge = (sessionId, parkCode, badgeType) =>
+  api.post('/chat/badge/unlock', null, { params: { session_id: sessionId, park_code: parkCode, badge_type: badgeType } }).then(r => r.data)
+
 export default api

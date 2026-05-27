@@ -7,6 +7,14 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, Field
 
 
+class QuizItem(BaseModel):
+    """KG 内置知识问题。"""
+    q: str
+    options: List[str]
+    answer: int
+    fact: str = ""
+
+
 class TouristPreference(BaseModel):
     """游客偏好——5 维偏好分数（0~1），来源于偏好引导页滑块。"""
     history: float = Field(0.5, ge=0, le=1, description="历史人文偏好")
@@ -30,6 +38,7 @@ class RouteSpot(BaseModel):
     tags: List[str] = []
     map_x: Optional[float] = None
     map_y: Optional[float] = None
+    quiz: List[QuizItem] = []
 
 
 class RouteResponse(BaseModel):
@@ -69,6 +78,7 @@ class CheckinResponse(BaseModel):
     next_spot_name: Optional[str] = None
     next_walk_minutes: Optional[int] = None
     checked_in_spot_code: str
+    badge: Optional["BadgeOut"] = None
 
 
 class ChatTextRequest(BaseModel):
@@ -90,6 +100,46 @@ class ChatTextResponse(BaseModel):
                         description="动作语义：idle/wave/explain/think")
     latency_ms: int = 0
     new_route: Optional["RouteResponse"] = Field(None, description="重规划后的新路线，非None时前端更新路线状态")
+
+
+class ReviewCreate(BaseModel):
+    session_id: str
+    park_code: Optional[str] = None
+    rating: int = Field(..., ge=1, le=5)
+    tags: List[str] = []
+    comment: Optional[str] = None
+
+
+class ReviewOut(BaseModel):
+    id: int
+    session_id: str
+    park_code: Optional[str] = None
+    rating: int
+    tags: List[str] = []
+    comment: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class BadgeOut(BaseModel):
+    id: int
+    session_id: str
+    park_code: Optional[str] = None
+    badge_type: str
+    badge_name: str
+    unlocked_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class SummaryRequest(BaseModel):
+    session_id: str
+    park_code: Optional[str] = None
+    spots: List[str] = []
+    elapsed_minutes: int = 0
 
 
 class AvatarIn(BaseModel):

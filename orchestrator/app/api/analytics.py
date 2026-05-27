@@ -9,7 +9,7 @@ from sqlalchemy import Integer, case, cast, extract, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.models import Avatar, Conversation, Message, Suggestion
+from app.models import Avatar, Conversation, Message, Review, Suggestion
 from app.schemas import HotQuestion, OverviewMetrics, SentimentPoint, SuggestionOut
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
@@ -34,17 +34,25 @@ async def overview(days: int = 7, db: AsyncSession = Depends(get_db)):
         select(func.avg(Message.latency_ms))
         .where(Message.role == "assistant", Message.created_at >= week_start)
     )).scalar() or 0.0
-    pos = (await db.execute(
-        select(func.count(Message.id))
-        .where(Message.role == "user", Message.sentiment == "pos",
-               Message.created_at >= week_start)
-    )).scalar_one()
-    total = (await db.execute(
-        select(func.count(Message.id))
-        .where(Message.role == "user", Message.sentiment.is_not(None),
-               Message.created_at >= week_start)
-    )).scalar_one()
-    satisfaction = (pos / total) if total else 0.0
+    # 满意度：优先从游客主动评分（Review 表）计算，无评分时回退到情感推断
+    avg_rating = (await db.execute(
+        select(func.avg(Review.rating))
+        .where(Review.created_at >= week_start)
+    )).scalar()
+    if avg_rating:
+        satisfaction = round(float(avg_rating) / 5.0, 3)
+    else:
+        pos = (await db.execute(
+            select(func.count(Message.id))
+            .where(Message.role == "user", Message.sentiment == "pos",
+                   Message.created_at >= week_start)
+        )).scalar_one()
+        total = (await db.execute(
+            select(func.count(Message.id))
+            .where(Message.role == "user", Message.sentiment.is_not(None),
+                   Message.created_at >= week_start)
+        )).scalar_one()
+        satisfaction = round((pos / total), 3) if total else 0.0
     today_neg = (await db.execute(
         select(func.count(Message.id))
         .where(Message.role == "user", Message.sentiment == "neg",

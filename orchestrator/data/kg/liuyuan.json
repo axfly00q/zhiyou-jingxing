@@ -8,7 +8,12 @@
       "themes": {"history": 0.4, "nature": 0.2, "architecture": 0.7, "family": 0.5, "photo": 0.4},
       "highlight": "留园入口，曲折幽深的入园通道是江南第一'欲扬先抑'。",
       "suggested_minutes": 5,
-      "neighbors": [{"code": "gu_mu_jiao_ke", "walk_minutes": 3}]
+      "neighbors": [{"code": "gu_mu_jiao_ke", "walk_minutes": 3}],
+      "quiz": [
+        {"q": "留园入口通道体现了园林造园的哪种手法？", "options": ["开门见山", "欲扬先抑", "移步换景", "藏而不露"], "answer": 1, "fact": "留园以狭长曲折的入口通道著称，游客在幽暗狭窄处行走后豁然开朗，这正是'欲扬先抑'的经典运用。"},
+        {"q": "留园始建于哪个朝代？", "options": ["唐代", "宋代", "明代", "清代"], "answer": 2, "fact": "留园始建于明嘉靖年间（16世纪），原名'东园'，清代改称留园。"},
+        {"q": "留园与哪些园林并称为中国四大名园？", "options": ["拙政园、颐和园、避暑山庄", "拙政园、北海、圆明园", "拙政园、承德避暑山庄、北京颐和园", "颐和园、圆明园、北海"], "answer": 0, "fact": "留园与苏州拙政园、北京颐和园、承德避暑山庄并称中国四大名园。"}
+      ]
     },
     {
       "code": "gu_mu_jiao_ke",
@@ -16,7 +21,12 @@
       "themes": {"history": 0.6, "nature": 0.7, "architecture": 0.5, "family": 0.5, "photo": 0.7},
       "highlight": "古柏与女贞缠绕共生，象征园林意趣。",
       "suggested_minutes": 6,
-      "neighbors": [{"code": "men_ting", "walk_minutes": 3}, {"code": "lv_yin", "walk_minutes": 3}]
+      "neighbors": [{"code": "men_ting", "walk_minutes": 3}, {"code": "lv_yin", "walk_minutes": 3}],
+      "quiz": [
+        {"q": "古木交柯景点的特色是哪两种树木缠绕共生？", "options": ["松柏与银杏", "古柏与女贞", "梅花与竹", "榕树与榆树"], "answer": 1, "fact": "古木交柯以古柏与女贞两株古木枝干相缠为特色，象征'友谊长存、共生共荣'。"},
+        {"q": "'交柯'这个词语的含义是？", "options": ["树枝交错缠绕", "两树对话", "两棵树相爱", "树荫相连"], "answer": 0, "fact": "'交柯'即枝干相互交错缠绕之意，古柏与女贞历数百年，枝干已难解难分。"},
+        {"q": "古木交柯的两株古树大约有多少年历史？", "options": ["50年", "100年", "数百年", "千年以上"], "answer": 2, "fact": "古木交柯的古柏与女贞已生长数百年，是留园历史最悠久的植物见证者之一。"}
+      ]
     },
     {
       "code": "lv_yin",
@@ -24,7 +34,12 @@
       "themes": {"history": 0.5, "nature": 0.8, "architecture": 0.6, "family": 0.6, "photo": 0.7},
       "highlight": "中部赏景起点，临池见枫。",
       "suggested_minutes": 6,
-      "neighbors": [{"code": "gu_mu_jiao_ke", "walk_minutes": 3}, {"code": "han_bi_shan_fang", "walk_minutes": 4}]
+      "neighbors": [{"code": "gu_mu_jiao_ke", "walk_minutes": 3}, {"code": "han_bi_shan_fang", "walk_minutes": 4}],
+      "quiz": [
+        {"q": "绿荫轩最宜欣赏什么季节的景色？", "options": ["春日桃花", "夏日荷花", "秋日红枫", "冬日腊梅"], "answer": 2, "fact": "绿荫轩临池，秋季枫叶如火，红枫倒映水中，是留园秋景最美的观赏点之一。"},
+        {"q": "绿荫轩在留园游览路线中的位置是？", "options": ["入园第一站", "中部赏景起点", "东部核心区", "西部出口"], "answer": 1, "fact": "绿荫轩是游览留园中部景区的起点，由此可通达涵碧山房、五峰仙馆等核心景点。"},
+        {"q": "绿荫轩的建筑形式是？", "options": ["楼阁", "小轩（小敞厅）", "廊桥", "船坞"], "answer": 1, "fact": "绿荫轩是一座玲珑小轩，轩前修竹绿荫婆娑，轩外池水清澈，是小憩赏景的佳所。"}
+      ]
     },
     {
       "code": "han_bi_shan_fang",
@@ -32,7 +47,12 @@
       "themes": {"history": 0.8, "nature": 0.6, "architecture": 0.9, "family": 0.4, "photo": 0.8},
       "highlight": "中部主厅，朱熹'一水方涵碧'之意。",
       "suggested_minutes": 10,
-      "neighbors": [{"code": "lv_yin", "walk_minutes": 4}, {"code": "wen_mu_xi_xiang_xuan", "walk_minutes": 5}, {"code": "qing_feng_chi_guan", "walk_minutes": 4}]
+      "neighbors": [{"code": "lv_yin", "walk_minutes": 4}, {"code": "wen_mu_xi_xiang_xuan", "walk_minutes": 5}, {"code": "qing_feng_chi_guan", "walk_minutes": 3}],
+      "quiz": [
+        {"q": "涵碧山房的命名取自哪位文人的诗意？", "options": ["苏轼", "朱熹", "王阳明", "欧阳修"], "answer": 1, "fact": "涵碧山房取意宋代理学家朱熹的诗句'一水方涵碧，千林已变红'，以'涵碧'描绘池水清澈如碧。"},
+        {"q": "涵碧山房是留园哪种功能的建筑？", "options": ["卧室寝宫", "主厅待客", "书房藏书", "厨房储物"], "answer": 1, "fact": "涵碧山房是留园最重要的主厅，是园主宴客、雅集的核心场所，建筑宏敞气派。"},
+        {"q": "涵碧山房与池水的关系是？", "options": ["背山面水", "三面临水", "全部被水围绕", "临水一面"], "answer": 1, "fact": "涵碧山房三面环水，水光池影将建筑映衬得格外灵秀，是典型的'水中楼台'式布局。"}
+      ]
     },
     {
       "code": "wen_mu_xi_xiang_xuan",
@@ -40,7 +60,12 @@
       "themes": {"history": 0.6, "nature": 0.9, "architecture": 0.6, "family": 0.5, "photo": 0.7},
       "highlight": "秋日金桂飘香，登山小憩之所。",
       "suggested_minutes": 7,
-      "neighbors": [{"code": "han_bi_shan_fang", "walk_minutes": 5}, {"code": "ke_ting", "walk_minutes": 4}]
+      "neighbors": [{"code": "han_bi_shan_fang", "walk_minutes": 5}, {"code": "ke_ting", "walk_minutes": 4}],
+      "quiz": [
+        {"q": "'木樨'是什么植物的雅称？", "options": ["梅花", "桂花", "茉莉", "玉兰"], "answer": 1, "fact": "木樨是桂花的雅称，因其木质树干、芳香沁人而得名，是中国古典园林最常栽植的香花。"},
+        {"q": "闻木樨香轩最宜游览的季节是？", "options": ["春季", "夏季", "秋季", "冬季"], "answer": 2, "fact": "秋季金桂盛开，芳香四溢，闻木樨香轩的名字在秋天最能感同身受。"},
+        {"q": "闻木樨香轩位于假山上，从此处能看到什么？", "options": ["冠云峰石", "中部全景水景", "北寺塔", "入园通道"], "answer": 1, "fact": "闻木樨香轩建在假山顶部，居高临下，可俯瞰留园中部水景池山全貌，是中部游览最佳制高点。"}
+      ]
     },
     {
       "code": "qing_feng_chi_guan",

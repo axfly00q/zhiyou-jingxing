@@ -24,8 +24,9 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.core.logger import logger
 from app.models import Conversation, Message
-from app.schemas import (ChatTextRequest, ChatTextResponse,
-                         CheckinRequest, CheckinResponse, RouteContext)
+from app.schemas import (BadgeOut, ChatTextRequest, ChatTextResponse,
+                         CheckinRequest, CheckinResponse, ReviewCreate,
+                         RouteContext, SummaryRequest)
 from app.services.asr_funasr import asr_client
 from app.services.audio_transcode import to_wav_16k_mono
 from app.services.dialogue_tagger import tag as tag_dialogue
@@ -585,6 +586,7 @@ async def _do_checkin(
         next_spot_name=next_spot_name,
         next_walk_minutes=next_walk_minutes,
         checked_in_spot_code=resolved_code,
+        badge=await _award_badge_if_done(db, session_id, park_code, route_context),
     )
 
 
@@ -602,6 +604,199 @@ async def checkin(req: CheckinRequest, db: AsyncSession = Depends(get_db)):
         conv=conv,
         db=db,
     )
+
+
+_PARK_DISPLAY = {"zhuozhengyuan": "拙政园", "liuyuan": "留园"}
+
+
+async def _award_badge_if_done(
+    db: AsyncSession,
+    session_id: str,
+    park_code: str,
+    route_context: Optional[RouteContext],
+) -> Optional[BadgeOut]:
+    """若当前景点是路线最后一站，颁发路线完成徽章。"""
+    if not route_context or not route_context.remaining_names:
+        return None
+    if len(route_context.remaining_names) > 1:
+        return None  # 还有后续景点
+    return await _award_badge(db, session_id, park_code, "route_complete")
+
+
+async def _award_badge(
+    db: AsyncSession, session_id: str, park_code: str, badge_type: str
+) -> Optional[BadgeOut]:
+    from app.models import Badge as BadgeModel
+    existing = (await db.execute(
+        select(BadgeModel).where(
+            BadgeModel.session_id == session_id,
+            BadgeModel.badge_type == badge_type,
+        )
+    )).scalar_one_or_none()
+    if existing:
+        return BadgeOut.model_validate(existing)
+    park_display = _PARK_DISPLAY.get(park_code, park_code or "园林")
+    badge_names = {
+        "route_complete": f"{park_display}探索者",
+        "quiz_master": "文化达人",
+    }
+    badge = BadgeModel(
+        session_id=session_id,
+        park_code=park_code,
+        badge_type=badge_type,
+        badge_name=badge_names.get(badge_type, badge_type),
+    )
+    db.add(badge)
+    await db.commit()
+    await db.refresh(badge)
+    return BadgeOut.model_validate(badge)
+
+
+@router.post("/review")
+async def submit_review(req: ReviewCreate, db: AsyncSession = Depends(get_db)):
+    """游客主动提交评分（1-5星 + 标签 + 可选文字）。"""
+    from app.models import Review as ReviewModel
+    review = ReviewModel(
+        session_id=req.session_id,
+        park_code=req.park_code,
+        rating=req.rating,
+        tags=req.tags or [],
+        comment=req.comment,
+    )
+    db.add(review)
+    await db.commit()
+    return {"ok": True}
+
+
+@router.get("/badges/{session_id}", response_model=list)
+async def get_badges(session_id: str, db: AsyncSession = Depends(get_db)):
+    """查询某 session 解锁的全部徽章。"""
+    from app.models import Badge as BadgeModel
+    badges = (await db.execute(
+        select(BadgeModel).where(BadgeModel.session_id == session_id)
+    )).scalars().all()
+    return [BadgeOut.model_validate(b) for b in badges]
+
+
+@router.post("/badge/unlock")
+async def unlock_badge(
+    session_id: str,
+    park_code: Optional[str] = None,
+    badge_type: str = "quiz_master",
+    db: AsyncSession = Depends(get_db),
+):
+    """前端主动解锁徽章（用于知识问答答对触发文化达人徽章）。"""
+    badge = await _award_badge(db, session_id, park_code or "", badge_type)
+    return badge
+
+
+@router.post("/summary")
+async def generate_summary(req: SummaryRequest, db: AsyncSession = Depends(get_db)):
+    """生成一句话游览总结，供分享卡片使用。"""
+    from app.services.llm_client import llm_client
+    park_display = _PARK_DISPLAY.get(req.park_code or "", req.park_code or "苏州园林")
+    spots_str = "、".join(req.spots) if req.spots else "若干景点"
+    fallback = f"今日游览{park_display}，感受了江南园林的精致与意境之美。"
+    try:
+        summary = await llm_client.chat([
+            {"role": "system", "content": (
+                "你是一位诗意的苏州园林导游。"
+                "请根据游客的游览情况，用一句话（30-50字）生成优美的游览感言，"
+                "语言要有古典气息但不晦涩。"
+            )},
+            {"role": "user", "content": (
+                f"今天在{park_display}游览了{spots_str}，"
+                f"共{req.elapsed_minutes}分钟。"
+            )},
+        ], temperature=0.8, max_tokens=80)
+        return {"summary": summary.strip() or fallback}
+    except Exception:
+        return {"summary": fallback}
+
+
+@router.post("/share-card")
+async def generate_share_card(req: SummaryRequest, db: AsyncSession = Depends(get_db)):
+    """Pillow 合成分享卡片，返回 base64 PNG data URL。"""
+    import base64
+    from datetime import datetime as dt
+    from io import BytesIO
+
+    park_display = _PARK_DISPLAY.get(req.park_code or "", req.park_code or "苏州园林")
+    fallback_summary = f"今日游览{park_display}，感受了江南园林的精致与意境之美。"
+    spots_str = "、".join(req.spots) if req.spots else "若干景点"
+    summary = fallback_summary
+    try:
+        from app.services.llm_client import llm_client
+        summary = (await llm_client.chat([
+            {"role": "system", "content": "你是一位诗意的苏州园林导游。请用一句话（30-50字）生成优美的游览感言。"},
+            {"role": "user", "content": f"今天在{park_display}游览了{spots_str}，共{req.elapsed_minutes}分钟。"},
+        ], temperature=0.8, max_tokens=80)).strip() or fallback_summary
+    except Exception:
+        pass
+
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+
+        W, H = 800, 520
+        img = Image.new("RGB", (W, H), color=(250, 246, 235))
+        draw = ImageDraw.Draw(img)
+
+        # 双层边框
+        for offset, color in [(15, (180, 140, 70)), (20, (210, 170, 100))]:
+            draw.rectangle([offset, offset, W - offset, H - offset], outline=color, width=2)
+
+        # 尝试加载中文字体
+        font_title, font_body, font_small = (ImageFont.load_default(),) * 3
+        for fp in ["C:/Windows/Fonts/msyh.ttc", "C:/Windows/Fonts/simhei.ttf",
+                   "C:/Windows/Fonts/simsun.ttc"]:
+            try:
+                font_title = ImageFont.truetype(fp, 38)
+                font_body = ImageFont.truetype(fp, 20)
+                font_small = ImageFont.truetype(fp, 16)
+                break
+            except Exception:
+                continue
+
+        today = dt.now().strftime("%Y年%m月%d日")
+        draw.text((W // 2, 58), park_display, fill=(110, 70, 10), font=font_title, anchor="mm")
+        draw.text((W // 2, 100), today, fill=(150, 110, 50), font=font_small, anchor="mm")
+        draw.line([(50, 120), (W - 50, 120)], fill=(200, 160, 90), width=1)
+
+        # 景点列表（两列）
+        y = 140
+        for i, name in enumerate(req.spots[:10]):
+            x = 80 if i % 2 == 0 else W // 2 + 30
+            if i % 2 == 0 and i > 0:
+                y += 32
+            draw.text((x, y), f"✓ {name}", fill=(70, 50, 10), font=font_body)
+        y += 50
+
+        draw.line([(50, y), (W - 50, y)], fill=(200, 160, 90), width=1)
+        y += 18
+        draw.text((W // 2, y + 12), f"共游览 {req.elapsed_minutes} 分钟", fill=(110, 80, 20),
+                  font=font_body, anchor="mm")
+        y += 45
+
+        # AI 总结语（按字符换行）
+        cols = 26
+        lines = [summary[i:i + cols] for i in range(0, len(summary), cols)]
+        for line in lines[:2]:
+            draw.text((W // 2, y), line, fill=(90, 60, 10), font=font_body, anchor="mm")
+            y += 30
+
+        draw.line([(50, H - 55), (W - 50, H - 55)], fill=(200, 160, 90), width=1)
+        draw.text((W // 2, H - 33), "智游景行 · AI 数字人导览", fill=(150, 120, 60),
+                  font=font_small, anchor="mm")
+
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        b64 = base64.b64encode(buf.getvalue()).decode()
+        return {"image": f"data:image/png;base64,{b64}"}
+    except ImportError:
+        return {"image": None, "error": "Pillow not installed"}
+    except Exception as exc:
+        logger.warning("share-card 生成失败：{}", exc)
+        return {"image": None, "error": str(exc)}
 
 
 @router.post("/voice", response_model=ChatTextResponse)
