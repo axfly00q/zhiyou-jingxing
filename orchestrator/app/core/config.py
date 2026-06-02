@@ -35,9 +35,27 @@ class Settings(BaseSettings):
     # Dify
     dify_base_url: str = "http://localhost/v1"
     dify_api_key: str = ""
-    # 知识库 dataset id（在 Dify 后台「知识库」详情 URL 中可见）；填写后 /admin/knowledge/upload 会同步入库
-    dify_dataset_id: str = ""
     dify_dataset_api_key: str = ""
+    # 分类知识库 dataset id（在 Dify 后台「知识库」详情 URL 中可见）
+    # tour_guide:  园区游览攻略、景点介绍、FAQ
+    # culture:     苏州文化、造园理论
+    # international: 外籍游客服务
+    # nearby:      周边景点推荐
+    dify_dataset_id: str = ""                    # 默认/兜底（原字段，保持兼容）
+    dify_dataset_id_tour_guide: str = ""
+    dify_dataset_id_culture: str = ""
+    dify_dataset_id_international: str = ""
+    dify_dataset_id_nearby: str = ""
+
+    def dataset_id_for_category(self, category: str) -> str:
+        """按分类返回对应 dataset_id，兜底用默认值。"""
+        mapping = {
+            "tour_guide": self.dify_dataset_id_tour_guide,
+            "culture": self.dify_dataset_id_culture,
+            "international": self.dify_dataset_id_international,
+            "nearby": self.dify_dataset_id_nearby,
+        }
+        return mapping.get(category, "") or self.dify_dataset_id
 
     # ASR / TTS / Avatar
     asr_base_url: str = "http://localhost:10095"

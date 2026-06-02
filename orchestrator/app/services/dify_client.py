@@ -166,17 +166,19 @@ class DifyClient:
             yield "（网络不稳定，请稍后重试）"
 
     async def upload_dataset_document(self, filename: str, content: bytes,
-                                       content_type: str = "application/octet-stream") -> dict:
+                                       content_type: str = "application/octet-stream",
+                                       dataset_id: str | None = None) -> dict:
         """调用 Dify Datasets API 把文件入库（``create_by_file``）。
 
-        要求 ``settings.dify_dataset_id`` 与 ``settings.dify_dataset_api_key`` 都已配置；
-        否则抛 ``RuntimeError``。返回 Dify 响应原文（含 ``document.id`` 等）。
+        - ``dataset_id``：指定目标知识库 ID；若不传则用 ``settings.dify_dataset_id``。
+        - 要求 ``settings.dify_dataset_api_key`` 或 ``dify_api_key`` 已配置；
+          否则抛 ``RuntimeError``。返回 Dify 响应原文（含 ``document.id`` 等）。
         """
-        dataset_id = settings.dify_dataset_id
+        resolved_dataset_id = dataset_id or settings.dify_dataset_id
         api_key = settings.dify_dataset_api_key or self.api_key
-        if not dataset_id or not api_key:
+        if not resolved_dataset_id or not api_key:
             raise RuntimeError("dify dataset 未配置")
-        url = f"{self.base_url}/datasets/{dataset_id}/document/create_by_file"
+        url = f"{self.base_url}/datasets/{resolved_dataset_id}/document/create_by_file"
         # 按 Dify 规范：data 字段是 JSON 字符串；file 是 multipart 文件
         data_json = json.dumps({
             "indexing_technique": "high_quality",

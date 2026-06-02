@@ -137,16 +137,33 @@ async def upload_motion(code: str, name: str, file: UploadFile = File(...)):
 
 # ---- 知识库（透传 Dify Datasets API）----
 
-@router.post("/knowledge/upload", dependencies=[Depends(verify_admin)])
-async def upload_knowledge(file: UploadFile = File(...)):
-    """落盘到 ``data/uploads`` 留底，并尽力调用 Dify Datasets API 入库。
+# 支持的分类（与 config.py dataset_id_for_category 对应）
+_VALID_CATEGORIES = {"tour_guide", "culture", "international", "nearby", "general"}
+_CATEGORY_LABELS = {
+    "tour_guide": "旅游攻略",
+    "culture": "苏州文化",
+    "international": "外籍服务",
+    "nearby": "周边景点",
+    "general": "通用",
+}
 
-    - 若未配置 ``DIFY_DATASET_ID`` / ``DIFY_DATASET_API_KEY``，仅落盘并返回 ``synced=false``。
-    - 调用失败不影响落盘成功，返回 ``synced=false`` 与 ``error``。
+
+@router.post("/knowledge/upload", dependencies=[Depends(verify_admin)])
+async def upload_knowledge(
+    file: UploadFile = File(...),
+    category: str = Form("general"),
+):
+    """落盘到 ``data/uploads/{category}`` 留底，并尽力调用对应 Dify 知识库 API 入库。
+
+    ``category`` 可选值：tour_guide / culture / international / nearby / general。
+    - 若未配置对应知识库 ID / API Key，仅落盘并返回 ``synced=false``。
     """
     if not file.filename:
         raise HTTPException(400, "missing filename")
-    target = Path(__file__).resolve().parents[2] / "data" / "uploads"
+    if category not in _VALID_CATEGORIES:
+        raise HTTPException(400, f"unknown category: {category}")
+
+    target = Path(__file__).resolve().parents[2] / "data" / "uploads" / category
     target.mkdir(parents=True, exist_ok=True)
     fp = target / file.filename
     content = await file.read()
@@ -155,15 +172,18 @@ async def upload_knowledge(file: UploadFile = File(...)):
     synced = False
     error: str | None = None
     document_id: str | None = None
+    dataset_id = settings.dataset_id_for_category(category)
     try:
         resp = await dify_client.upload_dataset_document(
             filename=file.filename,
             content=content,
             content_type=file.content_type or "application/octet-stream",
+            dataset_id=dataset_id or None,
         )
         synced = True
         document_id = (resp.get("document") or {}).get("id")
-        logger.info("Dify 知识库同步成功 file={} doc_id={}", file.filename, document_id)
+        logger.info("Dify 知识库同步成功 category={} file={} doc_id={}",
+                    category, file.filename, document_id)
     except RuntimeError as exc:
         error = str(exc)
         logger.warning("Dify 知识库未配置，仅落盘：{}", exc)
@@ -171,25 +191,35 @@ async def upload_knowledge(file: UploadFile = File(...)):
         error = f"{type(exc).__name__}: {exc}"
         logger.exception("Dify 知识库同步失败：{}", exc)
 
-    return {"ok": True, "saved_as": fp.name, "synced": synced,
-            "document_id": document_id, "error": error}
+    return {"ok": True, "saved_as": fp.name, "category": category,
+            "synced": synced, "document_id": document_id, "error": error}
 
 
 @router.get("/knowledge/list", dependencies=[Depends(verify_admin)])
 async def list_knowledge():
-    """返回已上传知识库文件列表（按修改时间倒序）。"""
-    target = Path(__file__).resolve().parents[2] / "data" / "uploads"
-    if not target.exists():
+    """返回已上传知识库文件列表（含分类，按修改时间倒序）。"""
+    base = Path(__file__).resolve().parents[2] / "data" / "uploads"
+    if not base.exists():
         return []
     files = []
-    for fp in sorted(target.iterdir(), key=lambda f: f.stat().st_mtime, reverse=True):
-        if fp.is_file():
-            stat = fp.stat()
-            files.append({
-                "name": fp.name,
-                "size": stat.st_size,
-                "updated_at": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-            })
+    # 遍历所有分类子目录和根目录下的文件
+    search_dirs = [(base, "general")] + [
+        (base / cat, cat) for cat in _VALID_CATEGORIES if (base / cat).is_dir()
+    ]
+    for dir_path, cat in search_dirs:
+        if not dir_path.exists():
+            continue
+        for fp in dir_path.iterdir():
+            if fp.is_file():
+                stat = fp.stat()
+                files.append({
+                    "name": fp.name,
+                    "category": cat,
+                    "category_label": _CATEGORY_LABELS.get(cat, cat),
+                    "size": stat.st_size,
+                    "updated_at": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                })
+    files.sort(key=lambda f: f["updated_at"], reverse=True)
     return files
 
 
