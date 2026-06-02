@@ -52,3 +52,12 @@ deploy/.env
 /*.png
 /*.jpg
 /*.jpeg
+
+# 小程序相关（单独维护）
+miniprogram-tourist/
+project.config.json
+project.private.config.json
+
+# 测试脚本
+check_*.py
+test_*.py

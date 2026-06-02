@@ -549,7 +549,7 @@ function onRatingDone() {
 /* 竖屏主布局（默认 1080×1920）：上 60vh 数字人，下 40vh 对话 */
 .layout {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
   height: 100vh;
   height: 100dvh;
@@ -559,7 +559,7 @@ function onRatingDone() {
 
 .avatar-pane {
   position: relative;
-  flex: 0 0 60vh;
+  flex: 0 0 45%;
   background: linear-gradient(180deg, #1f2233 0%, #2a2e44 100%);
   overflow: hidden;
 }
@@ -614,16 +614,23 @@ function onRatingDone() {
 .interrupt-btn:active { background: rgba(255,255,255,0.3); }
 
 .chat-pane {
-  flex: 1 1 40vh;
+  flex: 1 1 55%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   background: #fff;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -6px 20px rgba(0,0,0,0.25);
+  border-radius: 0;
+  box-shadow: -6px 0 20px rgba(0,0,0,0.25);
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
+.route-map-container {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #eee;
+  overflow-y: auto;
+}
 .messages {
   flex: 1; min-height: 0;
   overflow-y: auto;
@@ -654,7 +661,7 @@ function onRatingDone() {
   scrollbar-width: none;
 }
 .presets::-webkit-scrollbar { display: none; }
-.map-section { border-bottom: 1px solid #eee; }
+.map-section { flex: 0 0 auto; border-bottom: 1px solid #eee; }
 .map-toggle { display: flex; justify-content: space-between; align-items: center; padding: 6px 14px; cursor: pointer; font-size: 13px; color: #555; background: #f8f9fb; user-select: none; }
 .map-toggle:hover { background: #eef2f9; }
 .map-arrow { color: #999; font-size: 11px; }
@@ -673,6 +680,7 @@ function onRatingDone() {
 .chip:active { background: #e2ecff; }
 
 .input-bar {
+  flex: 0 0 auto;
   padding: 10px 14px 14px;
   border-top: 1px solid #eef0f5;
   display: grid;
@@ -685,7 +693,7 @@ textarea {
   border: 1px solid #ddd;
   border-radius: 10px;
   padding: 10px 12px;
-  font-size: clamp(15px, 2.6vw, 20px);
+  font-size: clamp(13px, 2.2vw, 18px);
   font-family: inherit;
   outline: none;
 }
@@ -694,10 +702,10 @@ textarea:focus { border-color: #2c7be5; }
 .btn {
   border: none;
   border-radius: 10px;
-  padding: 0 18px;
-  min-width: clamp(72px, 12vw, 110px);
-  min-height: 44px;
-  font-size: clamp(14px, 2.4vw, 18px);
+  padding: 0 14px;
+  min-width: clamp(56px, 8vw, 88px);
+  min-height: 40px;
+  font-size: clamp(12px, 2vw, 16px);
   cursor: pointer;
 }
 .btn.primary { background: #2c7be5; color: #fff; }
