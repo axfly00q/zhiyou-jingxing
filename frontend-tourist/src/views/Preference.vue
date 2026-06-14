@@ -59,8 +59,8 @@ import { useRouter } from 'vue-router'
 import { planRoute } from '../api.js'
 
 const router = useRouter()
-const park = sessionStorage.getItem('park') || 'zhuozhengyuan'
-const parkName = sessionStorage.getItem('park_name') || '拙政园'
+const park = sessionStorage.getItem('park') || 'lingshan'
+const parkName = sessionStorage.getItem('park_name') || '灵山胜境'
 
 const PREFS = { history: '历史人文', nature: '自然风光', architecture: '建筑艺术', family: '亲子友好', photo: '摄影打卡' }
 const THEME_LABEL = { history: '历史', nature: '自然', architecture: '建筑', family: '亲子', photo: '摄影' }

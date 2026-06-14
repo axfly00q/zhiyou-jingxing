@@ -1,9 +1,9 @@
-"""»ğÉ½ÒıÇæ BigTTS ¿Í»§¶Ë£¨Tier-2 ½µ¼¶ TTS£©¡£
+"""ç«å±±å¼•æ“ BigTTS å®¢æˆ·ç«¯ï¼ˆTier-2 é™çº§ TTSï¼‰ã€‚
 
-¿ØÖÆÌ¨£ºhttps://console.volcengine.com/speech/service/8
-¼øÈ¨£ºAPP ID + Access Token£¨¿ØÖÆÌ¨¡¸·şÎñ½Ó¿ÚÈÏÖ¤ĞÅÏ¢¡¹¡ú¡¸±à¼­¡¹²é¿´£©
-¶Ëµã£ºhttps://openspeech.bytedance.com/api/v1/tts
-¼¯Èº£ºvolcano_bigtts
+æ§åˆ¶å°ï¼šhttps://console.volcengine.com/speech/service/8
+é‰´æƒï¼šAPP ID + Access Tokenï¼ˆæ§åˆ¶å°ã€ŒæœåŠ¡æ¥å£è®¤è¯ä¿¡æ¯ã€â†’ã€Œç¼–è¾‘ã€æŸ¥çœ‹ï¼‰
+ç«¯ç‚¹ï¼šhttps://openspeech.bytedance.com/api/v1/tts
+é›†ç¾¤ï¼švolcano_bigtts
 """
 from __future__ import annotations
 
@@ -28,11 +28,11 @@ class DoubaoTTSClient:
         self.voice = voice or settings.doubao_tts_voice or _DEFAULT_VOICE
 
     async def synthesize(self, text: str) -> bytes:
-        """ÎÄ±¾ -> MP3 ×Ö½Ú£»Î´ÅäÖÃÆ¾Ö¤»òÇëÇóÊ§°ÜÊ±·µ»Ø b''¡£"""
+        """æ–‡æœ¬ -> MP3 å­—èŠ‚ï¼›æœªé…ç½®å‡­è¯æˆ–è¯·æ±‚å¤±è´¥æ—¶è¿”å› b''ã€‚"""
         if not text:
             return b""
         if not self.app_id or not self.access_token:
-            logger.warning("DOUBAO_APP_ID / DOUBAO_ACCESS_TOKEN Î´ÅäÖÃ£¬Ìø¹ı»ğÉ½ BigTTS")
+            logger.warning("DOUBAO_APP_ID / DOUBAO_ACCESS_TOKEN æœªé…ç½®ï¼Œè·³è¿‡ç«å±± BigTTS")
             return b""
         payload = {
             "app": {
@@ -63,18 +63,18 @@ class DoubaoTTSClient:
             async with httpx.AsyncClient(timeout=30) as client:
                 resp = await client.post(_TTS_URL, json=payload, headers=headers)
                 if resp.status_code != 200:
-                    logger.error("»ğÉ½ BigTTS ·µ»Ø {} body={}", resp.status_code, resp.text[:200])
+                    logger.error("ç«å±± BigTTS è¿”å› {} body={}", resp.status_code, resp.text[:200])
                     return b""
                 data = resp.json()
                 code = data.get("code")
                 if code != 3000:
-                    logger.error("»ğÉ½ BigTTS ÒµÎñ´íÎó code={} msg={}", code, data.get("message"))
+                    logger.error("ç«å±± BigTTS ä¸šåŠ¡é”™è¯¯ code={} msg={}", code, data.get("message"))
                     return b""
                 audio_b64: str = data.get("data", {}).get("audio", "")
                 if not audio_b64:
-                    logger.warning("»ğÉ½ BigTTS ·µ»Ø¿ÕÒôÆµ")
+                    logger.warning("ç«å±± BigTTS è¿”å›ç©ºéŸ³é¢‘")
                     return b""
                 return base64.b64decode(audio_b64)
         except Exception as exc:
-            logger.exception("»ğÉ½ BigTTS Ê§°Ü£º{}", exc)
+            logger.exception("ç«å±± BigTTS å¤±è´¥ï¼š{}", exc)
             return b""

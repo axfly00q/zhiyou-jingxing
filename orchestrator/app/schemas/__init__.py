@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class QuizItem(BaseModel):
@@ -119,8 +119,7 @@ class ReviewOut(BaseModel):
     comment: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BadgeOut(BaseModel):
@@ -131,8 +130,7 @@ class BadgeOut(BaseModel):
     badge_name: str
     unlocked_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SummaryRequest(BaseModel):
@@ -158,8 +156,7 @@ class AvatarOut(AvatarIn):
     id: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LoginRequest(BaseModel):
@@ -193,6 +190,15 @@ class SentimentPoint(BaseModel):
     neg: int
 
 
+class SatisfactionPoint(BaseModel):
+    """按日汇总的满意度数据点：优先来自游客主动 Review 评分（1-5星），
+    无评分日期则以情感正向比例推算（0-5 等效分）。"""
+    date: str
+    avg_rating: float = Field(..., description="当日平均满意度（0-5 等效分）")
+    review_count: int = Field(0, description="当日主动评分条数，0 表示情感推算")
+    source: str = Field("review", description="review=主动评分 | sentiment=情感推算")
+
+
 class SuggestionOut(BaseModel):
     id: int
     title: str
@@ -202,8 +208,7 @@ class SuggestionOut(BaseModel):
     evidence: Optional[List[Any]] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SuggestionStatusUpdate(BaseModel):

@@ -19,8 +19,22 @@ from app.services.llm_client import llm_client
 INTENTS = ["explain", "recommend", "complaint", "navigation", "chitchat"]
 SENTIMENTS = ["pos", "neu", "neg"]
 
-_NEG_KW = ("不满", "投诉", "差评", "失望", "排队", "脏", "贵", "无聊", "找不到", "误导", "等太久")
-_POS_KW = ("好看", "漂亮", "喜欢", "棒", "推荐", "舒服", "好玩", "厉害", "感谢")
+_NEG_KW = (
+    # 直接投诉词
+    "不满", "投诉", "差评", "失望", "排队", "脏", "贵", "无聊", "找不到", "误导", "等太久",
+    # 补充：常见投诉场景
+    "人太多", "看不到", "设施差", "不推荐", "没想象中",
+    "没有想象", "不值得", "太差", "走弯路", "指示牌太少",
+    "很差", "不如意", "差得",
+)
+_POS_KW = (
+    # 直接赞誉词
+    "好看", "漂亮", "喜欢", "棒", "舒服", "好玩", "厉害", "感谢", "很推荐", "强推",
+    # 补充：景区高频赞誉词
+    "开阔", "太美", "值得", "很美", "很好", "很棒",
+    "真美", "真好", "超美", "非常漂亮", "景色很好",
+    "赞", "不错", "满意", "很开心", "非常好",
+)
 
 
 @dataclass
@@ -32,21 +46,38 @@ class AnalysisResult:
 
 
 def _rule_fallback(text: str) -> AnalysisResult:
+    # ── 1. 情感判断 ──────────────────────────────────────────────────────────
     if any(k in text for k in _NEG_KW):
         s, sc = "neg", -0.6
     elif any(k in text for k in _POS_KW):
         s, sc = "pos", 0.6
     else:
         s, sc = "neu", 0.0
-    intent = "complaint" if s == "neg" else "chitchat"
-    if any(k in text for k in ("怎么", "为什么", "讲讲", "介绍")):
-        intent = "explain"
-    if any(k in text for k in ("推荐", "去哪", "建议")):
-        intent = "recommend"
-    if any(k in text for k in ("怎么走", "在哪", "出口", "厕所")):
-        intent = "navigation"
+
+    # ── 2. 意图判断（优先级：complaint > recommend > navigation > explain > chitchat）
+    # neg 情感直接归 complaint，不被其他关键词覆盖
+    if s == "neg":
+        intent = "complaint"
+    else:
+        intent = "chitchat"
+        # recommend：含推荐/建议关键词（最高级，因为"带孩子去哪"包含哪，但是recommend）
+        if any(k in text for k in ("推荐", "建议", "哪个好", "值得去", "适合")):
+            intent = "recommend"
+        # navigation：含方位/位置关键词
+        elif any(k in text for k in ("怎么走", "在哪", "在哪里", "出口", "厕所", "停车", "哪里", "哪边", "方向", "餐厅", "附近")):
+            intent = "navigation"
+        # explain：含 what/why/how 问词，但排除「怎么走」「怎么了」「怎么样」等
+        elif any(k in text for k in ("为什么", "什么意思", "什么朝代", "什么时候",
+                                     "什么是", "讲讲", "介绍", "来历", "历史",
+                                     "怎么理解", "怎么来的")):
+            intent = "explain"
+        elif "怎么" in text and "走" not in text and "了" not in text and "样" not in text:
+            intent = "explain"
+
     kws = re.findall(r"[\u4e00-\u9fa5A-Za-z]{2,6}", text)[:5]
     return AnalysisResult(intent, s, sc, kws)
+
+
 
 
 PROMPT = """你是文旅服务的对话标注引擎。请对游客发言做三项标注，严格输出 JSON：

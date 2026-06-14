@@ -1,0 +1,28 @@
+{
+  "pages": [
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationBarTitleText": "智游景行"
+      }
+    },
+    {
+      "path": "pages/preferences/index",
+      "style": {
+        "navigationBarTitleText": "偏好与路线规划"
+      }
+    },
+    {
+      "path": "pages/chat/index",
+      "style": {
+        "navigationBarTitleText": "智能伴游"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "智游景行",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  }
+}

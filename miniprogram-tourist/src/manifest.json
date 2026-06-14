@@ -1,0 +1,30 @@
+{
+  "name": "miniprogram-tourist",
+  "appid": "",
+  "description": "",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "requiredPrivateInfos": [
+      "getLocation",
+      "onLocationChange",
+      "startLocationUpdate",
+      "startLocationUpdateBackground"
+    ],
+    "permission": {
+      "scope.userLocation": {
+        "desc": "您的位置信息将用于在景区地图上为您提供精准的导航与路线推荐服务"
+      },
+      "scope.userLocationBackground": {
+        "desc": "在后台运行时持续为您提供导航播报服务"
+      }
+    }
+  }
+}

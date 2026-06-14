@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.models import Avatar, Conversation, Message, Review, Suggestion
-from app.schemas import HotQuestion, OverviewMetrics, SentimentPoint, SuggestionOut
+from app.schemas import HotQuestion, OverviewMetrics, SatisfactionPoint, SentimentPoint, SuggestionOut
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
@@ -206,3 +206,82 @@ async def avatar_preference(days: int = 30, db: AsyncSession = Depends(get_db)):
         {"avatar_id": r[0], "name": r[1] or r[0], "count": r[2]}
         for r in rows
     ]
+
+
+@router.get("/satisfaction-trend", response_model=List[SatisfactionPoint])
+async def satisfaction_trend(days: int = 14, db: AsyncSession = Depends(get_db)):
+    """按日汇总满意度趋势。
+
+    数据优先级：
+    1) 当日有游客主动 Review（1-5 星）→ 取平均分；
+    2) 当日无 Review → 用情感正向比推算等效分（pos_rate * 5）。
+
+    两种来源分别标注 source='review' / source='sentiment'，
+    前端可用不同颜色/线型区分置信度。
+    """
+    start = datetime.utcnow() - timedelta(days=days)
+
+    # ── 1) 拉取 Review 按日平均评分 ──────────────────────────────────────────
+    review_q = (
+        select(
+            func.date(Review.created_at).label("d"),
+            func.avg(Review.rating).label("avg_r"),
+            func.count(Review.id).label("cnt"),
+        )
+        .where(Review.created_at >= start)
+        .group_by("d")
+        .order_by("d")
+    )
+    review_rows = (await db.execute(review_q)).all()
+    review_by_date: dict[str, tuple[float, int]] = {
+        str(r[0]): (float(r[1]), int(r[2])) for r in review_rows
+    }
+
+    # ── 2) 拉取 Message 情感按日统计（回退用） ───────────────────────────────
+    sent_q = (
+        select(
+            func.date(Message.created_at).label("d"),
+            Message.sentiment,
+            func.count(Message.id),
+        )
+        .where(
+            Message.role == "user",
+            Message.created_at >= start,
+            Message.sentiment.is_not(None),
+        )
+        .group_by("d", Message.sentiment)
+        .order_by("d")
+    )
+    sent_rows = (await db.execute(sent_q)).all()
+    sent_by_date: dict[str, dict[str, int]] = {}
+    for d, s, c in sent_rows:
+        key = str(d)
+        sent_by_date.setdefault(key, {"pos": 0, "neu": 0, "neg": 0})
+        if s in sent_by_date[key]:
+            sent_by_date[key][s] += c
+
+    # ── 3) 合并：对每一天选择最优来源 ────────────────────────────────────────
+    all_dates = sorted(set(list(review_by_date.keys()) + list(sent_by_date.keys())))
+    result: list[SatisfactionPoint] = []
+    for d in all_dates:
+        if d in review_by_date:
+            avg_r, cnt = review_by_date[d]
+            result.append(SatisfactionPoint(
+                date=d,
+                avg_rating=round(avg_r, 2),
+                review_count=cnt,
+                source="review",
+            ))
+        elif d in sent_by_date:
+            bucket = sent_by_date[d]
+            total = bucket["pos"] + bucket["neu"] + bucket["neg"]
+            pos_rate = bucket["pos"] / total if total else 0.0
+            # 情感推算：pos_rate → 等效 5 分制（0~5）
+            equiv_rating = round(pos_rate * 5.0, 2)
+            result.append(SatisfactionPoint(
+                date=d,
+                avg_rating=equiv_rating,
+                review_count=0,
+                source="sentiment",
+            ))
+    return result

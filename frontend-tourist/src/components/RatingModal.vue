@@ -53,7 +53,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['done'])
 
-const PARK_NAMES = { zhuozhengyuan: '拙政园', liuyuan: '留园' }
+const PARK_NAMES = { lingshan: '灵山胜境', liuyuan: '留园' }
 const parkDisplayName = computed(() => PARK_NAMES[props.parkCode] || props.parkCode || '园林')
 
 const rating = ref(5)

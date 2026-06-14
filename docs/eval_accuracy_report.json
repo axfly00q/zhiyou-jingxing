@@ -1,0 +1,79 @@
+{
+  "generated_at": "2026-06-11T10:44:55.683460",
+  "threshold": 0.9,
+  "overall": {
+    "total": 85,
+    "correct": 80,
+    "accuracy": 0.9412,
+    "passed": true
+  },
+  "modules": [
+    {
+      "module": "sentiment_rule_fallback",
+      "total": 55,
+      "correct": 50,
+      "accuracy": 0.9091,
+      "failures": [
+        {
+          "text": "拍照最好的地方在哪里",
+          "expected_sentiment": "neu",
+          "got_sentiment": "neu",
+          "expected_intent": "recommend",
+          "got_intent": "navigation",
+          "sent_ok": true,
+          "intent_ok": false
+        },
+        {
+          "text": "哪个景点最值得看",
+          "expected_sentiment": "neu",
+          "got_sentiment": "pos",
+          "expected_intent": "recommend",
+          "got_intent": "chitchat",
+          "sent_ok": false,
+          "intent_ok": false
+        },
+        {
+          "text": "谢谢你",
+          "expected_sentiment": "pos",
+          "got_sentiment": "neu",
+          "expected_intent": null,
+          "got_intent": "chitchat",
+          "sent_ok": false,
+          "intent_ok": true
+        },
+        {
+          "text": "这里真的值得来，不失望",
+          "expected_sentiment": "pos",
+          "got_sentiment": "neg",
+          "expected_intent": null,
+          "got_intent": "complaint",
+          "sent_ok": false,
+          "intent_ok": true
+        },
+        {
+          "text": "排队虽然久，但景色还行",
+          "expected_sentiment": "neu",
+          "got_sentiment": "neg",
+          "expected_intent": "chitchat",
+          "got_intent": "complaint",
+          "sent_ok": false,
+          "intent_ok": false
+        }
+      ]
+    },
+    {
+      "module": "kg_route_planner",
+      "total": 10,
+      "correct": 10,
+      "accuracy": 1.0,
+      "failures": []
+    },
+    {
+      "module": "dialogue_tagger",
+      "total": 20,
+      "correct": 20,
+      "accuracy": 1.0,
+      "failures": []
+    }
+  ]
+}

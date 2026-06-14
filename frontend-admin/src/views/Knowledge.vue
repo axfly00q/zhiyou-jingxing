@@ -50,7 +50,7 @@ import api from '../api.js'
 
 const categories = [
   { value: 'tour_guide',     label: '旅游攻略' },
-  { value: 'culture',        label: '苏州文化' },
+  { value: 'culture',        label: '灵山文化' },
   { value: 'international',  label: '外籍服务' },
   { value: 'nearby',         label: '周边景点' },
   { value: 'general',        label: '通用' },

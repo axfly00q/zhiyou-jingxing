@@ -34,7 +34,7 @@
       />
 
       <!-- D2: 景区平面地图（可折叠，默认收起） -->
-      <div v-if="parkCode === 'zhuozhengyuan' && routeSpots.length" class="map-section">
+      <div v-if="parkCode === 'lingshan' && routeSpots.length" class="map-section">
         <div class="map-toggle" @click="mapExpanded = !mapExpanded">
           <span>🗺 景区平面图</span>
           <span class="map-arrow">{{ mapExpanded ? '▲' : '▼' }}</span>
@@ -126,8 +126,8 @@ import ShareCard from '../components/ShareCard.vue'
 // 生产环境请到 admin 后台上传自己的 .vrm
 const SAMPLE_VRM_URL = 'https://cdn.jsdelivr.net/gh/pixiv/three-vrm@release/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm'
 
-const parkName = sessionStorage.getItem('park_name') || '苏州园林'
-const parkCode = sessionStorage.getItem('park') || 'zhuozhengyuan'
+const parkName = sessionStorage.getItem('park_name') || '灵山胜境'
+const parkCode = sessionStorage.getItem('park') || 'lingshan'
 const mapExpanded = ref(false)
 
 // 结束游览弹窗状态

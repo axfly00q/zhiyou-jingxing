@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-06-11T10:50:15.336910",
+  "mode": "REAL",
+  "thresholds": {
+    "chat_p95_ms": 3000,
+    "success_rate_min": 0.95
+  },
+  "endpoints": [
+    {
+      "name": "chat/text（文本对话）",
+      "method": "POST",
+      "path": "/api/chat/text",
+      "total": 20,
+      "success": 20,
+      "success_rate": 1.0,
+      "latency": {
+        "avg_ms": 2473.0,
+        "p50_ms": 2080.4,
+        "p95_ms": 3546.1,
+        "p99_ms": 3546.1,
+        "max_ms": 6061.4
+      },
+      "target_ms": 3000.0,
+      "target_ok": false
+    },
+    {
+      "name": "route/plan（路线规划）",
+      "method": "POST",
+      "path": "/api/route/zhuozhengyuan/plan",
+      "total": 20,
+      "success": 20,
+      "success_rate": 1.0,
+      "latency": {
+        "avg_ms": 687.6,
+        "p50_ms": 176.2,
+        "p95_ms": 226.3,
+        "p99_ms": 226.3,
+        "max_ms": 10343.7
+      },
+      "target_ms": null,
+      "target_ok": null
+    },
+    {
+      "name": "analytics/overview（大屏总览）",
+      "method": "GET",
+      "path": "/api/analytics/overview",
+      "total": 20,
+      "success": 20,
+      "success_rate": 1.0,
+      "latency": {
+        "avg_ms": 27.4,
+        "p50_ms": 21.1,
+        "p95_ms": 44.5,
+        "p99_ms": 44.5,
+        "max_ms": 67.4
+      },
+      "target_ms": null,
+      "target_ok": null
+    },
+    {
+      "name": "route/graph（KG 图结构）",
+      "method": "GET",
+      "path": "/api/route/zhuozhengyuan/graph",
+      "total": 20,
+      "success": 0,
+      "success_rate": 0.0,
+      "latency": {
+        "avg_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "max_ms": 0.0
+      },
+      "target_ms": null,
+      "target_ok": null
+    },
+    {
+      "name": "analytics/satisfaction-trend（满意度趋势）",
+      "method": "GET",
+      "path": "/api/analytics/satisfaction-trend",
+      "total": 20,
+      "success": 0,
+      "success_rate": 0.0,
+      "latency": {
+        "avg_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "max_ms": 0.0
+      },
+      "target_ms": null,
+      "target_ok": null
+    },
+    {
+      "name": "health（服务健康检查）",
+      "method": "GET",
+      "path": "/health",
+      "total": 20,
+      "success": 20,
+      "success_rate": 1.0,
+      "latency": {
+        "avg_ms": 12.2,
+        "p50_ms": 5.6,
+        "p95_ms": 29.0,
+        "p99_ms": 29.0,
+        "max_ms": 30.7
+      },
+      "target_ms": null,
+      "target_ok": null
+    }
+  ]
+}

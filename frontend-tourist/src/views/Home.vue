@@ -2,11 +2,11 @@
   <div class="home">
     <div class="hero card">
       <h1>智游景行 · 数字人导览</h1>
-      <p class="subtitle">让 AI 数字人陪您游遍苏州园林</p>
+      <p class="subtitle">让 AI 数字人陪您游遍灵山胜境</p>
       <div class="park-row">
         <div v-for="p in parks" :key="p.code" class="park" @click="select(p)">
           <h3>{{ p.name }}</h3>
-          <p>{{ p.code === 'zhuozhengyuan' ? '世界文化遗产 · 中国四大名园' : '江南第一厅堂 · 三大名石之冠' }}</p>
+          <p>{{ p.code === 'lingshan' ? '东方佛国 · 太湖明珠' : '江南第一厅堂 · 三大名石之冠' }}</p>
         </div>
       </div>
     </div>

@@ -59,3 +59,12 @@ project.private.config.json
 # 测试脚本
 check_*.py
 test_*.py
+
+# TTS 运行时缓存（自动生成的音频文件）
+orchestrator/data/tts_cache/
+
+# 测试输出文件
+orchestrator/test_out*.txt
+
+# 原始资料包（含大型二进制文件，不纳入版本控制）
+20260323113204906/

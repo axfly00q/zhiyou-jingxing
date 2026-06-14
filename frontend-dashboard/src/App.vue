@@ -2,7 +2,7 @@
   <div class="dash">
     <header>
       <div class="header-left">
-        <h1>智游景行 · 苏州园林游客服务大屏</h1>
+        <h1>智游景行 · 灵山胜境游客服务大屏</h1>
         <span class="subtitle">实时数据 · 每 15 秒更新</span>
       </div>
       <div class="header-right">
@@ -101,7 +101,7 @@ function toggleFullscreen() {
   }
 }
 
-const dark = { textStyle: { color: '#cbd5e1' } }
+const dark = { textStyle: { color: '#d1c4b7' } }
 
 async function refresh() {
   now.value = new Date().toLocaleString()
@@ -125,22 +125,22 @@ async function refresh() {
     xAxis: {
       type: 'category',
       data: hourly.data.map(x => x.hour),
-      axisLabel: { color: '#94a3b8', formatter: v => v + '时' }
+      axisLabel: { color: '#8a7f76', formatter: v => v + '时' }
     },
-    yAxis: { type: 'value', axisLabel: { color: '#94a3b8' }, name: '咨询量', nameTextStyle: { color: '#64748b' } },
+    yAxis: { type: 'value', axisLabel: { color: '#8a7f76' }, name: '咨询量', nameTextStyle: { color: '#8a7f76' } },
     series: [{
       type: 'bar',
       data: hourly.data.map(x => ({
         value: x.count,
         itemStyle: {
           color: Number(x.hour) === currentHour
-            ? '#f59e0b'
-            : { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(56,189,248,0.9)' }, { offset: 1, color: 'rgba(56,189,248,0.2)' }] }
+            ? { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#e5c378' }, { offset: 1, color: '#8c6b2e' }] }
+            : { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(212,175,55,0.4)' }, { offset: 1, color: 'rgba(212,175,55,0.05)' }] }
         }
       })),
       markLine: {
         silent: true,
-        data: [{ xAxis: String(currentHour), label: { formatter: '▲ 现在', color: '#f59e0b' }, lineStyle: { color: '#f59e0b', type: 'dashed' } }]
+        data: [{ xAxis: String(currentHour), label: { formatter: '▲ 现在', color: '#e5c378' }, lineStyle: { color: '#e5c378', type: 'dashed' } }]
       }
     }]
   })
@@ -151,19 +151,19 @@ async function refresh() {
     ...dark,
     tooltip: { formatter: p => `${p.name}<br/>咨询次数：${p.value}` },
     grid: { left: 80, right: 24, top: 8, bottom: 12 },
-    xAxis: { type: 'value', axisLabel: { color: '#94a3b8' } },
-    yAxis: { type: 'category', data: spotRows.map(x => x.name), axisLabel: { color: '#e2e8f0', fontSize: 12 } },
+    xAxis: { type: 'value', axisLabel: { color: '#8a7f76' } },
+    yAxis: { type: 'category', data: spotRows.map(x => x.name), axisLabel: { color: '#d1c4b7', fontSize: 12 } },
     series: [{
       type: 'bar',
       data: spotRows.map((x, i) => ({
         value: x.count,
         itemStyle: {
           color: i === spotRows.length - 1
-            ? { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#f59e0b' }, { offset: 1, color: '#dc2626' }] }
-            : { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#1d4ed8' }, { offset: 1, color: '#38bdf8' }] }
+            ? { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#d4af37' }, { offset: 1, color: '#ffecb3' }] }
+            : { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#6d5322' }, { offset: 1, color: '#b68d40' }] }
         }
       })),
-      label: { show: true, position: 'right', color: '#94a3b8', fontSize: 11, formatter: p => p.value || '' }
+      label: { show: true, position: 'right', color: '#d1c4b7', fontSize: 11, formatter: p => p.value || '' }
     }]
   })
 
@@ -173,17 +173,17 @@ async function refresh() {
     ...dark,
     grid: { left: 220, right: 60, top: 8, bottom: 12 },
     tooltip: { formatter: p => `问题：${hot[p.dataIndex]?.question}<br/>被问次数：${p.value}` },
-    xAxis: { type: 'value', axisLabel: { color: '#94a3b8' } },
+    xAxis: { type: 'value', axisLabel: { color: '#8a7f76' } },
     yAxis: {
       type: 'category',
       data: hot.map(x => x.question.length > 22 ? x.question.slice(0, 22) + '…' : x.question),
-      axisLabel: { color: '#e2e8f0', fontSize: 12 }
+      axisLabel: { color: '#d1c4b7', fontSize: 12 }
     },
     series: [{
       type: 'bar',
       data: hot.map(x => x.count),
-      itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#4f46e5' }, { offset: 1, color: '#38bdf8' }] } },
-      label: { show: true, position: 'right', color: '#94a3b8', fontSize: 11, formatter: p => p.value ? `×${p.value}` : '' }
+      itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#8c6b2e' }, { offset: 1, color: '#d4af37' }] } },
+      label: { show: true, position: 'right', color: '#d1c4b7', fontSize: 11, formatter: p => p.value ? `×${p.value}` : '' }
     }]
   })
 }
@@ -203,15 +203,15 @@ onUnmounted(() => { clearInterval(timer); window.removeEventListener('resize', r
 </script>
 
 <style scoped>
-.dash { min-height: 100vh; padding: 16px; display: flex; flex-direction: column; background: #020817; }
-header { display: flex; justify-content: space-between; align-items: center; padding: 0 8px 12px; border-bottom: 1px solid #1f2a44; }
+.dash { min-height: 100vh; padding: 16px; display: flex; flex-direction: column; background: #12100e; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 0 8px 12px; border-bottom: 1px solid #2e2822; }
 .header-left { display: flex; flex-direction: column; gap: 2px; }
-.subtitle { font-size: 12px; color: #475569; letter-spacing: 1px; }
+.subtitle { font-size: 12px; color: #8a7f76; letter-spacing: 1px; }
 .header-right { display: flex; align-items: center; gap: 16px; }
-header h1 { margin: 0; font-size: 22px; background: linear-gradient(90deg, #38bdf8, #c084fc); -webkit-background-clip: text; color: transparent; }
-.time { color: #64748b; font-size: 13px; }
-.fs-btn { background: transparent; border: 1px solid #334155; color: #94a3b8; border-radius: 6px; padding: 4px 10px; font-size: 16px; cursor: pointer; line-height: 1; }
-.fs-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+header h1 { margin: 0; font-size: 22px; background: linear-gradient(90deg, #e5c378, #d4af37); -webkit-background-clip: text; color: transparent; text-shadow: 0 2px 10px rgba(212,175,55,0.1); }
+.time { color: #8a7f76; font-size: 13px; }
+.fs-btn { background: transparent; border: 1px solid #3b3228; color: #8a7f76; border-radius: 6px; padding: 4px 10px; font-size: 16px; cursor: pointer; line-height: 1; transition: all 0.2s ease; }
+.fs-btn:hover { border-color: #d4af37; color: #d4af37; background: rgba(212, 175, 55, 0.1); }
 
 .grid {
   flex: 1; display: grid;
@@ -224,9 +224,9 @@ header h1 { margin: 0; font-size: 22px; background: linear-gradient(90deg, #38bd
 /* 热门问答占满两列 */
 .grid .hot-qa { grid-column: span 2; }
 
-.card { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; }
-.card h3 { margin: 0 0 4px; font-size: 14px; color: #94a3b8; font-weight: 500; letter-spacing: 0.5px; }
-.chart-hint { font-size: 11px; color: #475569; margin-bottom: 8px; }
+.card { background: #1a1714; border: 1px solid #2e2822; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+.card h3 { margin: 0 0 4px; font-size: 14px; color: #d1c4b7; font-weight: 500; letter-spacing: 0.5px; }
+.chart-hint { font-size: 11px; color: #8a7f76; margin-bottom: 8px; }
 .chart { flex: 1; min-height: 0; }
 
 /* KPI */
@@ -234,13 +234,13 @@ header h1 { margin: 0; font-size: 22px; background: linear-gradient(90deg, #38bd
 .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; align-items: start; }
 .kpi-item { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
 .kpi-icon { font-size: 28px; line-height: 1; }
-.num { font-size: 38px; color: #38bdf8; font-weight: 700; line-height: 1.1; }
-.num.spot-name { font-size: 22px; color: #f59e0b; }
+.num { font-size: 38px; color: #d4af37; font-weight: 700; line-height: 1.1; text-shadow: 0 2px 10px rgba(212, 175, 55, 0.2); }
+.num.spot-name { font-size: 22px; color: #e5c378; }
 .num.peak { font-size: 20px; font-weight: 600; }
 .num.peak-high { color: #ef4444; }
-.num.peak-mid  { color: #f59e0b; }
-.num.peak-low  { color: #22c55e; }
-.lbl { color: #64748b; font-size: 13px; }
-.peak-tip { font-size: 11px; color: #475569; margin-top: 2px; max-width: 140px; line-height: 1.4; }
+.num.peak-mid  { color: #d4af37; }
+.num.peak-low  { color: #10b981; }
+.lbl { color: #8a7f76; font-size: 13px; }
+.peak-tip { font-size: 11px; color: #8a7f76; margin-top: 2px; max-width: 140px; line-height: 1.4; }
 </style>
 

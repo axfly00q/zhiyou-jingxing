@@ -45,7 +45,8 @@ _CHITCHAT_GREETINGS = frozenset({
 })
 _CHITCHAT_PHRASES = frozenset({
     "谢谢", "谢", "感谢", "再见", "拜拜", "晚安", "早安", "早上好", "下午好",
-    "好的", "嗯", "哦", "ok", "好呀", "哈哈", "不客气", "没事",
+    "好的", "嗯", "哦", "ok", "好呀", "哈哈", "不客气", "没事", 
+    "知道啦", "行", "明白", "收到", "那走吧", "走吧", "好嘞",
 })
 # 含这些关键词说明是实质性问题，不视为闲聊
 _INFO_KW = frozenset({
@@ -80,7 +81,7 @@ async def _llm_chitchat_reply(user_text: str, park_name: str) -> str:
         return await llm_client.chat([
             {"role": "system", "content": (
                 f"你是{park_name}的数字人导游。用户说了一句闲聊或寒暄。"
-                "请用一句轻松自然的话回应，并引导他们提问园林相关的问题。"
+                "请用一句轻松自然的话回应，并引导他们提问景区相关的问题。"
                 "回答不超过 50 字，语气亲切活泼。"
             )},
             {"role": "user", "content": user_text},
@@ -606,7 +607,7 @@ async def checkin(req: CheckinRequest, db: AsyncSession = Depends(get_db)):
     )
 
 
-_PARK_DISPLAY = {"zhuozhengyuan": "拙政园", "liuyuan": "留园"}
+_PARK_DISPLAY = {"lingshan": "灵山胜境", "liuyuan": "留园"}
 
 
 async def _award_badge_if_done(
