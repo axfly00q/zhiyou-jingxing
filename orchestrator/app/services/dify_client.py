@@ -62,7 +62,10 @@ class DifyClient:
         if conversation_id:
             payload["conversation_id"] = conversation_id
         try:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(connect=5.0, read=60.0, write=10.0, pool=5.0)) as client:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(connect=5.0, read=60.0, write=10.0, pool=5.0),
+                trust_env=False,  # 不读系统代理，避免本地 Dify 请求走 Clash 等代理超时
+            ) as client:
                 resp = await client.post(f"{self.base_url}/chat-messages",
                                          json=payload, headers=self._headers)
                 resp.raise_for_status()
@@ -108,7 +111,10 @@ class DifyClient:
         if conversation_id:
             payload["conversation_id"] = conversation_id
         try:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(connect=5.0, read=120.0, write=10.0, pool=5.0)) as client:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(connect=5.0, read=120.0, write=10.0, pool=5.0),
+                trust_env=False,  # 不读系统代理，避免本地 Dify 请求走 Clash 等代理超时
+            ) as client:
                 async with client.stream("POST", f"{self.base_url}/chat-messages",
                                          json=payload, headers=self._headers) as resp:
                     if resp.status_code >= 400:
@@ -188,7 +194,7 @@ class DifyClient:
             "data": (None, data_json, "application/json"),
             "file": (filename, content, content_type),
         }
-        async with httpx.AsyncClient(timeout=120) as client:
+        async with httpx.AsyncClient(timeout=120, trust_env=False) as client:
             resp = await client.post(url, files=files,
                                      headers={"Authorization": f"Bearer {api_key}"})
             resp.raise_for_status()

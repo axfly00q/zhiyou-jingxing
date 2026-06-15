@@ -168,10 +168,10 @@ def _get_secondary_tts():
     return _secondary_tts_instance
 
 
-def _build_dify_inputs(rc: Optional[RouteContext]) -> dict:
+def _build_dify_inputs(rc: Optional[RouteContext], conversation_id: Optional[str] = None, query: Optional[str] = None) -> dict:
     """把路线上下文转为 Dify inputs 字典；无路线时返回全部 key 的空字符串（满足 Dify 必填校验）。"""
     if not rc:
-        return {
+        base = {
             "current_spot": "",
             "visited_spots": "",
             "remaining_spots": "",
@@ -179,15 +179,21 @@ def _build_dify_inputs(rc: Optional[RouteContext]) -> dict:
             "remaining_minutes": "",
             "preferences_summary": "",
         }
-    remaining_min = max(rc.total_minutes - rc.elapsed_minutes, 0)
-    return {
-        "current_spot": rc.current_spot_name or "",
-        "visited_spots": "、".join(rc.visited_names) if rc.visited_names else "无",
-        "remaining_spots": "、".join(rc.remaining_names) if rc.remaining_names else "无",
-        "elapsed_minutes": str(rc.elapsed_minutes),
-        "remaining_minutes": str(remaining_min),
-        "preferences_summary": rc.preferences_summary or "",
-    }
+    else:
+        remaining_min = max(rc.total_minutes - rc.elapsed_minutes, 0)
+        base = {
+            "current_spot": rc.current_spot_name or "",
+            "visited_spots": "、".join(rc.visited_names) if rc.visited_names else "无",
+            "remaining_spots": "、".join(rc.remaining_names) if rc.remaining_names else "无",
+            "elapsed_minutes": str(rc.elapsed_minutes),
+            "remaining_minutes": str(remaining_min),
+            "preferences_summary": rc.preferences_summary or "",
+        }
+    # 部分 Dify workflow 把 conversation_id / query 也定义为必填 input 变量
+    base["conversation_id"] = conversation_id or ""
+    if query is not None:
+        base["query"] = query
+    return base
 
 
 _CHECKIN_KW = {"到了", "在这", "到达", "走到", "来到", "已经到", "抵达", "来了"}
@@ -401,7 +407,7 @@ async def _orchestrate(session_id: str, user_text: str,
                                 latency_ms=latency)
 
     # 1) Dify RAG 问答（携带已有 conversation_id 保持多轮上下文）
-    inputs = _build_dify_inputs(route_context)
+    inputs = _build_dify_inputs(route_context, conversation_id=conv.dify_conversation_id, query=user_text)
     dify_resp = await dify_client.chat(query=user_text, user=session_id,
                                         conversation_id=conv.dify_conversation_id,
                                         inputs=inputs)
@@ -484,7 +490,7 @@ async def _stream_orchestrate(req: ChatTextRequest, db: AsyncSession):
         full_text = await _llm_chitchat_reply(user_text, park_display)
         yield _sse({"type": "token", "text": full_text})
     else:
-        inputs = _build_dify_inputs(route_context)
+        inputs = _build_dify_inputs(route_context, conversation_id=conv.dify_conversation_id, query=user_text)
         conv_id_ref: list = []
         async for token in dify_client.stream(
             query=user_text, user=session_id,
@@ -536,8 +542,8 @@ async def _do_checkin(
             resolved_name = spot_obj.name
 
     # Dify 补充一句（带路线上下文）
-    inputs = _build_dify_inputs(route_context)
     dify_query = f"我已到达{resolved_name}，请用一句话补充一个有趣的小知识或观赏建议。"
+    inputs = _build_dify_inputs(route_context, conversation_id=conv.dify_conversation_id, query=dify_query)
     dify_resp = await dify_client.chat(
         query=dify_query,
         user=session_id,

@@ -23,7 +23,7 @@ class ASRClient:
         files = {"audio_file": ("audio.wav", audio_bytes, "audio/wav")}
         params = {"lang": lang, "sample_rate": sample_rate}
         try:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=30, trust_env=False) as client:
                 resp = await client.post(f"{self.base_url}/api/v1/asr",
                                          files=files, params=params)
                 resp.raise_for_status()

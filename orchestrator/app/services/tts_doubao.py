@@ -60,7 +60,7 @@ class DoubaoTTSClient:
             "Content-Type": "application/json",
         }
         try:
-            async with httpx.AsyncClient(timeout=30) as client:
+            async with httpx.AsyncClient(timeout=30, trust_env=False) as client:
                 resp = await client.post(_TTS_URL, json=payload, headers=headers)
                 if resp.status_code != 200:
                     logger.error("火山 BigTTS 返回 {} body={}", resp.status_code, resp.text[:200])

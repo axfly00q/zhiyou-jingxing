@@ -1,4 +1,4 @@
-acl localnet src 10.0.0.0/8
+acl localnet src 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
 acl SSL_ports port 443
 acl Safe_ports port 80
 acl Safe_ports port 443
@@ -11,6 +11,7 @@ http_access deny CONNECT !SSL_ports
 http_access allow localhost manager
 http_access deny manager
 http_access allow localhost
+http_access allow localnet
 http_access deny all
 tcp_outgoing_address 0.0.0.0
 http_port ${HTTP_PORT}

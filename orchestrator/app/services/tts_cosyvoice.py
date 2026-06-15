@@ -25,7 +25,7 @@ class TTSClient:
         try:
             # connect 超时 0.5s（服务不可达时快速失败），read 超时 30s（合成耗时）
             timeout = httpx.Timeout(connect=0.5, read=30.0, write=5.0, pool=1.0)
-            async with httpx.AsyncClient(timeout=timeout) as client:
+            async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
                 resp = await client.post(f"{self.base_url}/api/v1/tts", json=payload)
                 resp.raise_for_status()
                 return resp.content

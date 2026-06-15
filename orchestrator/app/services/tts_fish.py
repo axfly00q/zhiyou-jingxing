@@ -42,7 +42,7 @@ class FishTTSClient:
             "Content-Type": "application/json",
         }
         try:
-            async with httpx.AsyncClient(timeout=60) as client:
+            async with httpx.AsyncClient(timeout=60, trust_env=False) as client:
                 resp = await client.post(_FISH_TTS_URL, json=payload, headers=headers)
                 resp.raise_for_status()
                 return resp.content
