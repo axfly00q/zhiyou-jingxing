@@ -1,10 +1,25 @@
 """Pydantic schemas（请求/响应模型）。"""
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Any, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+def clean_ai_text(text: str) -> str:
+    cleaned = str(text or "")
+    cleaned = re.sub(r"```[a-zA-Z0-9_-]*\n?([\s\S]*?)```", r"\1", cleaned)
+    cleaned = re.sub(r"`([^`]*)`", r"\1", cleaned)
+    cleaned = re.sub(r"!\[([^\]]*)\]\([^)]+\)", r"\1", cleaned)
+    cleaned = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", cleaned)
+    cleaned = re.sub(r"^#{1,6}\s*", "", cleaned, flags=re.MULTILINE)
+    cleaned = cleaned.replace("*", "")
+    cleaned = re.sub(r"^\s*精简版\s*[:：]\s*", "", cleaned)
+    cleaned = re.sub(r"[ \t]+", " ", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
 
 
 class QuizItem(BaseModel):
@@ -67,6 +82,7 @@ class CheckinRequest(BaseModel):
     park_code: str
     avatar_code: Optional[str] = None
     route_context: Optional[RouteContext] = None
+    answer_mode: str = Field("fast", description="fast=精简版，detailed=详细版")
 
 
 class CheckinResponse(BaseModel):
@@ -80,6 +96,11 @@ class CheckinResponse(BaseModel):
     checked_in_spot_code: str
     badge: Optional["BadgeOut"] = None
 
+    @field_validator("narrative", mode="before")
+    @classmethod
+    def clean_narrative(cls, value):
+        return clean_ai_text(value)
+
 
 class ChatTextRequest(BaseModel):
     session_id: str
@@ -87,6 +108,7 @@ class ChatTextRequest(BaseModel):
     avatar_code: Optional[str] = None
     park_code: Optional[str] = None
     route_context: Optional[RouteContext] = None
+    answer_mode: str = Field("fast", description="fast=精简版，detailed=详细版")
 
 
 class ChatTextResponse(BaseModel):
@@ -100,6 +122,12 @@ class ChatTextResponse(BaseModel):
                         description="动作语义：idle/wave/explain/think")
     latency_ms: int = 0
     new_route: Optional["RouteResponse"] = Field(None, description="重规划后的新路线，非None时前端更新路线状态")
+
+
+    @field_validator("answer", mode="before")
+    @classmethod
+    def clean_answer(cls, value):
+        return clean_ai_text(value)
 
 
 class ReviewCreate(BaseModel):
@@ -157,6 +185,10 @@ class AvatarOut(AvatarIn):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AvatarUpdate(BaseModel):
+    description: Optional[str] = None
 
 
 class LoginRequest(BaseModel):

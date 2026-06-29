@@ -8,15 +8,8 @@
     </div>
 
     <!-- 顶部导航 -->
-    <nav class="top-nav fade-in-down">
-      <div class="nav-left">
-        <div class="logo-box">
-          <span class="logo-icon">✧</span>
-          <span class="logo-text">灵山胜境</span>
-        </div>
-      </div>
-      
-      <div class="nav-center">
+    <TopBanner>
+      <template #center>
         <div class="segmented-control">
           <button 
             :class="['seg-btn', { active: currentTab === 'tourist' }]"
@@ -31,15 +24,8 @@
             后台 · 智脑
           </button>
         </div>
-      </div>
-
-      <div class="nav-right">
-        <div class="status-indicator">
-          <span class="dot pulse-glow"></span>
-          <span class="tech-text">大模型核心引擎运行中</span>
-        </div>
-      </div>
-    </nav>
+      </template>
+    </TopBanner>
 
     <!-- 主体区域 -->
     <main class="main-content">
@@ -110,6 +96,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import TopBanner from '../components/TopBanner.vue'
 
 const router = useRouter()
 const currentTab = ref('tourist')

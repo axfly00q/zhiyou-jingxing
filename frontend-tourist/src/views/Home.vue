@@ -6,7 +6,7 @@
       <div class="park-row">
         <div v-for="p in parks" :key="p.code" class="park" @click="select(p)">
           <h3>{{ p.name }}</h3>
-          <p>{{ p.code === 'lingshan' ? '东方佛国 · 太湖明珠' : '江南第一厅堂 · 三大名石之冠' }}</p>
+          <p>{{ p.code === 'lingshan' ? '东方佛国 · 太湖明珠' : '中国四大名园 · 咫尺之内再造乾坤' }}</p>
         </div>
       </div>
     </div>
@@ -21,9 +21,18 @@ import { listParks } from '../api.js'
 const router = useRouter()
 const parks = ref([])
 
-onMounted(async () => { parks.value = await listParks() })
+onMounted(async () => {
+  const data = await listParks()
+  // 添加拙政园以平衡视觉，但后续网页不加支持
+  data.push({ code: 'zhuozhengyuan', name: '拙政园' })
+  parks.value = data
+})
 
 function select(p) {
+  if (p.code === 'zhuozhengyuan') {
+    alert('该景区的 AI 数字人导览正在建设中，敬请期待！')
+    return
+  }
   sessionStorage.setItem('park', p.code)
   sessionStorage.setItem('park_name', p.name)
   router.push('/preference')

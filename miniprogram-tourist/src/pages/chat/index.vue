@@ -15,7 +15,7 @@
     <view class="map-section" :class="{ 'collapsed': isMapCollapsed }">
       <view class="map-wrapper" v-show="!isMapCollapsed">
         <ParkMap
-          v-if="parkCode === 'lingshan' || parkCode === 'zhuozheng'"
+          v-if="hasMap"
           :park-code="parkCode"
           :spots="routeSpots"
           :current-idx="currentSpotIdx"
@@ -37,12 +37,27 @@
     <!-- 中部：AI 数字人区域 (展开态) -->
     <view class="avatar-section" v-if="!isAvatarShrinked">
       <view class="avatar-wrapper" @click="toggleAvatar">
-        <image 
-          class="avatar-image" 
-          src="https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif" 
-          mode="aspectFit"
-        ></image>
-        <view class="avatar-hint">点击数字人缩小，腾出聊天空间</view>
+        <video
+          v-if="!avatarVideoFailed"
+          id="avatarVideo"
+          :key="avatarVideoKey"
+          class="avatar-video"
+          :src="currentAvatarVideo"
+          :autoplay="true"
+          :loop="avatarVideoLoop"
+          :muted="true"
+          :controls="false"
+          :show-center-play-btn="false"
+          :show-play-btn="false"
+          :enable-progress-gesture="false"
+          object-fit="contain"
+          @ended="handleAvatarVideoEnded"
+          @error="handleAvatarVideoError"
+        ></video>
+        <view v-else class="avatar-video-placeholder">
+          <text>数字人视频待放入</text>
+        </view>
+        <view class="avatar-hint">{{ avatarStatusText }} · 点击缩小</view>
       </view>
     </view>
 
@@ -55,13 +70,36 @@
         :y="50"
         @click="toggleAvatar"
       >
-        <image class="avatar-image-small" src="https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif" mode="aspectFill"></image>
+        <video
+          v-if="!avatarVideoFailed"
+          id="avatarVideoSmall"
+          :key="avatarVideoKey"
+          class="avatar-video-small"
+          :src="currentAvatarVideo"
+          :autoplay="true"
+          :loop="avatarVideoLoop"
+          :muted="true"
+          :controls="false"
+          :show-center-play-btn="false"
+          :show-play-btn="false"
+          :enable-progress-gesture="false"
+          object-fit="cover"
+          @ended="handleAvatarVideoEnded"
+          @error="handleAvatarVideoError"
+        ></video>
+        <view v-else class="avatar-video-small-placeholder">AI</view>
       </movable-view>
     </movable-area>
 
     <!-- 底部：聊天记录区 -->
     <view class="chat-section">
-      <scroll-view class="chat-scroll" scroll-y :scroll-into-view="'msg-' + (messages.length - 1)">
+      <scroll-view
+        class="chat-scroll"
+        scroll-y
+        enable-flex
+        scroll-with-animation
+        :scroll-into-view="'msg-' + (messages.length - 1)"
+      >
         <view class="message-list">
           <view v-for="(m, i) in messages" :key="i" :class="['message', m.role]" :id="'msg-' + i">
             <text :class="{ thinking: m.content === '正在思考…' }">{{ m.content }}</text>
@@ -71,27 +109,114 @@
       </scroll-view>
       
       <!-- 输入区域 -->
+      <view class="answer-mode-tabs">
+        <view
+          class="answer-mode-tab"
+          :class="{ active: answerMode === 'fast' }"
+          @click="answerMode = 'fast'"
+        >
+          精简版
+        </view>
+        <view
+          class="answer-mode-tab"
+          :class="{ active: answerMode === 'detailed' }"
+          @click="answerMode = 'detailed'"
+        >
+          完整版
+        </view>
+      </view>
       <view class="input-area">
-        <input class="chat-input" placeholder="问问我关于景点的故事吧..." v-model="input" @confirm="send" />
-        <button class="send-btn" @click="send" :disabled="loading">发送</button>
+        <view class="mode-toggle" @click="toggleVoiceMode">
+          <text>{{ isVoiceMode ? '⌨️' : '🎤' }}</text>
+        </view>
+        <template v-if="!isVoiceMode">
+          <input class="chat-input" placeholder="问问我关于景点的故事吧..." v-model="input" @confirm="send" />
+          <button class="send-btn" @click="send" :disabled="loading">发送</button>
+        </template>
+        <template v-else>
+          <button class="voice-btn" :class="{ recording: isRecording }"
+                  @touchstart="startRecord" @touchend="stopRecord" @touchcancel="stopRecord">
+            {{ isRecording ? '说话中...' : '按住说话' }}
+          </button>
+        </template>
+        <!-- 保存 / 分享按钮 -->
+        <view class="share-btn" @tap="showShareCard = true" title="生成纪念卡">
+          <text class="share-btn-icon">🖼️</text>
+        </view>
       </view>
     </view>
+
+    <Muyu :park-code="parkCode" />
   </view>
+
+  <!-- 分享卡弹层 -->
+  <ShareCard
+    :visible="showShareCard"
+    :session-id="sessionId"
+    :park-code="parkCode"
+    :park-name="parkName"
+    :visited-spots="visitedSpots"
+    :elapsed-minutes="elapsedMinutes"
+    @close="showShareCard = false"
+  />
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import locationManager from '../../utils/locationManager'
-import { BASE_URL, chatCheckin } from '../../api'
+import { buildApiUrl, chatCheckin, chatText, getApiBaseUrl } from '../../api'
 import RouteBar from '../../components/RouteBar.vue'
 import ParkMap from '../../components/ParkMap.vue'
+import ShareCard from '../../components/ShareCard.vue'
+import Muyu from '../../components/Muyu.vue'
+
+const SESSION_STORAGE_KEY = 'tour_session_id'
+const MAP_ENABLED_PARKS = ['lingshan']
+const AVATAR_VIDEO_DIR = '/static/avatar-videos'
+const AVATAR_VIDEO_MAP = {
+  idle: 'idle.mp4',
+  listen: 'listen.mp4',
+  think: 'think.mp4',
+  explain: 'explain.mp4',
+  wave: 'wave.mp4',
+  point: 'point.mp4',
+  beckon: 'beckon.mp4',
+  bow: 'bow.mp4',
+  clap: 'clap.mp4',
+  shrug: 'shrug.mp4',
+  goodbye: 'goodbye.mp4',
+}
+const AVATAR_MOTION_FALLBACKS = {
+  idle: 'explain',
+  listen: 'explain',
+  think: 'explain',
+  point: 'explain',
+  beckon: 'wave',
+  bow: 'wave',
+  clap: 'wave',
+  shrug: 'wave',
+  goodbye: 'wave',
+}
+const LOOP_MOTIONS = ['idle', 'listen', 'think', 'explain']
 
 const parkName = ref('灵山胜境')
 const parkCode = ref('lingshan')
-const sessionId = ref(Math.random().toString(36).substring(2, 15))
+const sessionId = ref(createSessionId())
 const loading = ref(false)
 const input = ref('')
 const messages = ref([])
+const answerMode = ref('fast')
+const showShareCard = ref(false)   // 控制分享卡弹层
+
+// 已游览景点（从路线 + currentSpotIdx 推导）
+const visitedSpots = computed(() =>
+  routeSpots.value.slice(0, currentSpotIdx.value).map(s => s.name).filter(Boolean)
+)
+
+const isVoiceMode = ref(false)
+const isRecording = ref(false)
+let recorderManager = null
+let recorderStopHandler = null
 
 // 路线数据状态
 const routeSpots = ref([])
@@ -100,17 +225,179 @@ const currentSpotIdx = ref(0)
 const routeStartTime = ref(Date.now())
 const elapsedMinutes = ref(0)
 let elapsedTimer = null
+let stopLocationWatch = null
 
 // 状态控制
 const isMapCollapsed = ref(false)
 const isAvatarShrinked = ref(false)
 const screenWidth = ref(300)
+const avatarMotion = ref('think')
+const avatarVideoKey = ref(0)
+const avatarVideoFailed = ref(false)
+let avatarIdleTimer = null
+let assistantAudio = null
 
 // 定位数据
 const currentLat = ref(null)
 const currentLng = ref(null)
 const locationType = ref('')
-const lastMessageId = ref('msg-2')
+
+const hasMap = computed(() => MAP_ENABLED_PARKS.includes(parkCode.value))
+const normalizedAvatarMotion = computed(() => normalizeAvatarMotion(avatarMotion.value))
+const avatarVideoLoop = computed(() => LOOP_MOTIONS.includes(normalizedAvatarMotion.value))
+const currentAvatarVideo = computed(() => {
+  const file = AVATAR_VIDEO_MAP[normalizedAvatarMotion.value] || AVATAR_VIDEO_MAP.idle
+  return buildStaticUrl(`${AVATAR_VIDEO_DIR}/${file}`)
+})
+const avatarStatusText = computed(() => {
+  const textMap = {
+    idle: '待机',
+    listen: '聆听中',
+    think: '思考中',
+    explain: '讲解中',
+    wave: '打招呼',
+    point: '指引中',
+    beckon: '引导中',
+    bow: '致谢',
+    clap: '鼓掌',
+    shrug: '未听清',
+    goodbye: '告别',
+  }
+  return textMap[normalizedAvatarMotion.value] || '待机'
+})
+
+function normalizeAvatarMotion(motion) {
+  const key = String(motion || 'idle').trim()
+  return AVATAR_VIDEO_MAP[key] ? key : 'idle'
+}
+
+function clearAvatarIdleTimer() {
+  if (avatarIdleTimer) {
+    clearTimeout(avatarIdleTimer)
+    avatarIdleTimer = null
+  }
+}
+
+function scheduleAvatarIdle(ms = 6000) {
+  clearAvatarIdleTimer()
+  avatarIdleTimer = setTimeout(() => {
+    setAvatarMotion('idle')
+  }, ms)
+}
+
+function setAvatarMotion(motion, options = {}) {
+  const nextMotion = normalizeAvatarMotion(motion)
+  clearAvatarIdleTimer()
+  avatarMotion.value = nextMotion
+  avatarVideoFailed.value = false
+  avatarVideoKey.value += 1
+  if (options.autoIdleMs) {
+    scheduleAvatarIdle(options.autoIdleMs)
+  }
+}
+
+function handleAvatarVideoEnded() {
+  if (!avatarVideoLoop.value) {
+    setAvatarMotion('idle')
+  }
+}
+
+function handleAvatarVideoError() {
+  const fallback = AVATAR_MOTION_FALLBACKS[normalizedAvatarMotion.value]
+  if (fallback) {
+    setAvatarMotion(fallback)
+    return
+  }
+  avatarVideoFailed.value = true
+}
+
+function buildStaticUrl(url) {
+  if (!url) return ''
+  if (/^(https?:|data:|wxfile:|blob:)/.test(url)) return url
+  const apiBase = getApiBaseUrl().replace(/\/api\/?$/, '')
+  const normalizedPath = String(url).startsWith('/') ? url : `/${url}`
+  return `${apiBase}${normalizedPath}`
+}
+
+function ensureAssistantAudio() {
+  if (assistantAudio) return assistantAudio
+  assistantAudio = uni.createInnerAudioContext()
+  assistantAudio.obeyMuteSwitch = false
+  assistantAudio.onEnded(() => setAvatarMotion('idle'))
+  assistantAudio.onStop(() => setAvatarMotion('idle'))
+  assistantAudio.onError(() => scheduleAvatarIdle(2500))
+  return assistantAudio
+}
+
+function playAssistantAudio(audioUrl) {
+  if (!audioUrl) {
+    scheduleAvatarIdle(6500)
+    return
+  }
+  const audio = ensureAssistantAudio()
+  try {
+    audio.stop()
+    audio.src = buildStaticUrl(audioUrl)
+    audio.play()
+  } catch (e) {
+    scheduleAvatarIdle(6500)
+  }
+}
+
+function cleanAssistantText(text) {
+  return String(text ?? '')
+    .replace(/```[a-zA-Z0-9_-]*\n?([\s\S]*?)```/g, '$1')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/\*/g, '')
+    .replace(/^\s*精简版\s*[:：]\s*/, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+function applyAssistantPayload(res, msgIdx, contentKey = 'answer') {
+  messages.value[msgIdx].content = cleanAssistantText(res?.[contentKey] || '（暂无回复，请稍后重试）')
+  if (res?.new_route) applyNewRoute(res.new_route)
+  const nextMotion = res?.motion || 'explain'
+  setAvatarMotion(nextMotion)
+  playAssistantAudio(res?.audio_url)
+}
+
+function createSessionId() {
+  const fallback = Math.random().toString(36).substring(2, 15)
+  try {
+    const stored = uni.getStorageSync(SESSION_STORAGE_KEY)
+    if (stored) return stored
+    uni.setStorageSync(SESSION_STORAGE_KEY, fallback)
+  } catch (e) {}
+  return fallback
+}
+
+function buildRouteContext() {
+  const spots = routeSpots.value || []
+  const current = spots[currentSpotIdx.value] || null
+  return {
+    current_spot_code: current?.code || null,
+    current_spot_name: current?.name || null,
+    visited_names: spots.slice(0, currentSpotIdx.value).map(s => s.name).filter(Boolean),
+    remaining_names: spots.slice(currentSpotIdx.value).map(s => s.name).filter(Boolean),
+    total_minutes: routeTotalMinutes.value || 0,
+    elapsed_minutes: elapsedMinutes.value || 0,
+  }
+}
+
+function applyNewRoute(newRoute) {
+  if (!newRoute || !Array.isArray(newRoute.spots)) return
+  routeSpots.value = newRoute.spots
+  routeTotalMinutes.value = newRoute.total_minutes || 0
+  currentSpotIdx.value = 0
+  routeStartTime.value = Date.now()
+  elapsedMinutes.value = 0
+  uni.setStorageSync('route', JSON.stringify(newRoute))
+}
 
 // 到下一景点的距离（米），null 表示无定位或无路线
 const distToNext = computed(() => {
@@ -171,22 +458,110 @@ onMounted(() => {
   }
   
   if (narrative) {
-    messages.value.push({ role: 'assistant', content: narrative })
+    messages.value.push({ role: 'assistant', content: cleanAssistantText(narrative) })
   } else {
     messages.value.push({ role: 'assistant', content: `欢迎来到${parkName.value}！请问想了解什么？` })
   }
 
-  locationManager.onLocationUpdate((res) => {
+  stopLocationWatch = locationManager.onLocationUpdate((res) => {
     currentLat.value = res.latitude
     currentLng.value = res.longitude
     locationType.value = res.type
   })
   locationManager.start()
+
+  // 初始化录音管理器
+  recorderManager = uni.getRecorderManager()
+  recorderStopHandler = (res) => {
+    if (!res.tempFilePath) return
+    uploadVoice(res.tempFilePath)
+  }
+  recorderManager.onStop(recorderStopHandler)
 })
 
 onUnmounted(() => {
+  if (elapsedTimer) {
+    clearInterval(elapsedTimer)
+    elapsedTimer = null
+  }
+  if (stopLocationWatch) {
+    stopLocationWatch()
+    stopLocationWatch = null
+  }
+  if (recorderManager && recorderStopHandler && typeof recorderManager.offStop === 'function') {
+    recorderManager.offStop(recorderStopHandler)
+  }
+  clearAvatarIdleTimer()
+  if (assistantAudio) {
+    assistantAudio.destroy()
+    assistantAudio = null
+  }
   locationManager.stop()
 })
+
+const toggleVoiceMode = () => {
+  isVoiceMode.value = !isVoiceMode.value
+}
+
+const startRecord = () => {
+  if (loading.value) return
+  isRecording.value = true
+  setAvatarMotion('listen')
+  recorderManager.start({
+    duration: 60000,
+    sampleRate: 16000,
+    numberOfChannels: 1,
+    format: 'aac'
+  })
+}
+
+const stopRecord = () => {
+  if (!isRecording.value) return
+  isRecording.value = false
+  setAvatarMotion('think')
+  recorderManager.stop()
+}
+
+async function uploadVoice(tempFilePath) {
+  loading.value = true
+  uni.uploadFile({
+    url: buildApiUrl('/chat/transcribe'),
+    filePath: tempFilePath,
+    name: 'audio',
+    formData: {
+      session_id: sessionId.value,
+    },
+    success: (uploadFileRes) => {
+      if (uploadFileRes.statusCode < 200 || uploadFileRes.statusCode >= 300) {
+        uni.showToast({ title: '语音识别失败，请重试', icon: 'none' })
+        setAvatarMotion('shrug', { autoIdleMs: 2500 })
+        loading.value = false
+        return
+      }
+      try {
+        const res = JSON.parse(uploadFileRes.data)
+        const text = String(res?.text || '').trim()
+        if (!text) {
+          uni.showToast({ title: '没听清，请再说一次', icon: 'none' })
+          setAvatarMotion('shrug', { autoIdleMs: 2500 })
+        } else {
+          input.value = input.value.trim() ? `${input.value.trim()} ${text}` : text
+          isVoiceMode.value = false
+          setAvatarMotion('idle')
+        }
+      } catch (e) {
+        uni.showToast({ title: '识别结果解析失败', icon: 'none' })
+        setAvatarMotion('shrug', { autoIdleMs: 2500 })
+      }
+      loading.value = false
+    },
+    fail: () => {
+      uni.showToast({ title: '语音识别失败，请重试', icon: 'none' })
+      setAvatarMotion('shrug', { autoIdleMs: 2500 })
+      loading.value = false
+    }
+  })
+}
 
 async function send() {
   const text = input.value.trim()
@@ -197,41 +572,30 @@ async function send() {
 
   const msgIdx = messages.value.length
   messages.value.push({ role: 'assistant', content: '正在思考…' })
+  setAvatarMotion('think')
 
-  uni.request({
-    url: `${BASE_URL}/chat/stream`,
-    method: 'POST',
-    timeout: 60000,
-    data: {
+  try {
+    const res = await chatText({
       session_id: sessionId.value,
       message: text,
-      park_code: parkCode.value
-    },
-    success: (res) => {
-      // 解析完整 SSE 响应，拼接所有 token
-      let fullText = ''
-      const raw = typeof res.data === 'string' ? res.data : ''
-      for (const line of raw.split('\n')) {
-        if (!line.startsWith('data: ')) continue
-        try {
-          const evt = JSON.parse(line.slice(6))
-          if (evt.type === 'token' && evt.text) fullText += evt.text
-        } catch {}
-      }
-      messages.value[msgIdx].content = fullText || '（暂无回复，请稍后重试）'
-      loading.value = false
-    },
-    fail: () => {
-      messages.value[msgIdx].content = '（网络不稳定，请稍后重试）'
-      loading.value = false
-    }
-  })
+      park_code: parkCode.value,
+      route_context: buildRouteContext(),
+      answer_mode: answerMode.value,
+    })
+    applyAssistantPayload(res, msgIdx, 'answer')
+  } catch (e) {
+    messages.value[msgIdx].content = '（网络不稳定，请稍后重试）'
+    setAvatarMotion('shrug', { autoIdleMs: 2500 })
+  } finally {
+    loading.value = false
+  }
 }
 
 // 打卡处理
 async function handleCheckin(spotCode) {
   if (loading.value) return
   loading.value = true
+  const routeContext = buildRouteContext()
 
   // 立即推进进度条，给游客即时反馈
   if (currentSpotIdx.value < routeSpots.value.length) {
@@ -240,16 +604,18 @@ async function handleCheckin(spotCode) {
   // 立即显示思考占位，减少等待焦虑
   const msgIdx = messages.value.length
   messages.value.push({ role: 'assistant', content: '正在思考…' })
+  setAvatarMotion('think')
 
   try {
     const res = await chatCheckin({
       session_id: sessionId.value,
       spot_code: spotCode,
       park_code: parkCode.value,
+      route_context: routeContext,
     })
 
     // 用实际内容替换占位
-    messages.value[msgIdx].content = res.narrative
+    applyAssistantPayload(res, msgIdx, 'narrative')
 
     if (res.next_spot_name) {
       const walkTip = res.next_walk_minutes ? `，步行约 ${res.next_walk_minutes} 分钟` : ''
@@ -259,6 +625,7 @@ async function handleCheckin(spotCode) {
     }
   } catch (e) {
     messages.value[msgIdx].content = '打卡失败，请稍后重试。'
+    setAvatarMotion('shrug', { autoIdleMs: 2500 })
     // 回滚进度
     if (currentSpotIdx.value > 0) currentSpotIdx.value -= 1
   } finally {
@@ -268,15 +635,22 @@ async function handleCheckin(spotCode) {
 </script>
 
 <style>
+page {
+  height: 100%;
+  overflow: hidden;
+}
+
 /* 整个页面基于 Flex 竖向排列 */
 .chat-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   background-color: #f2f2f2;
   overflow: hidden;
   position: relative;
+  box-sizing: border-box;
 }
 
 /* === 地图区域 === */
@@ -339,9 +713,22 @@ async function handleCheckin(spotCode) {
   align-items: center;
 }
 
-.avatar-image {
+.avatar-video {
   width: 80%;
   height: 80%;
+  background: transparent;
+}
+
+.avatar-video-placeholder {
+  width: 80%;
+  height: 80%;
+  border: 1px dashed rgba(0,0,0,0.18);
+  border-radius: 12px;
+  color: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
 }
 
 .avatar-hint {
@@ -374,10 +761,20 @@ async function handleCheckin(spotCode) {
   overflow: hidden;
 }
 
-.avatar-image-small {
+.avatar-video-small {
   width: 100%;
   height: 100%;
-  transform: scale(1.5) translateY(10px); /* 放大特写 */
+}
+
+.avatar-video-small-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2c7be5;
+  font-size: 20px;
+  font-weight: bold;
 }
 
 /* === 聊天区域 === */
@@ -387,12 +784,16 @@ async function handleCheckin(spotCode) {
   display: flex;
   flex-direction: column;
   min-height: 0; /* 必须，防止 flex 撑破屏幕 */
+  overflow: hidden;
 }
 
 .chat-scroll {
   flex: 1;
+  height: 0;
+  min-height: 0;
   padding: 15px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .message-list {
@@ -455,18 +856,56 @@ async function handleCheckin(spotCode) {
 }
 
 .bottom-padding {
-  height: 20px;
+  height: 12px;
 }
 
 /* 输入框 */
+.answer-mode-tabs {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  gap: 4px;
+  padding: 4px;
+  margin: 6px 0 0;
+  background: #edf2f7;
+  border-radius: 999px;
+}
+.answer-mode-tab {
+  min-width: 72px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 999px;
+  color: #64748b;
+  font-size: 13px;
+}
+.answer-mode-tab.active {
+  background: #007AFF;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.24);
+}
 .input-area {
-  height: 60px;
+  flex: 0 0 auto;
+  min-height: 60px;
   background-color: white;
   display: flex;
   align-items: center;
-  padding: 0 15px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.02);
-  padding-bottom: env(safe-area-inset-bottom);
+}
+.mode-toggle {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f5f5f5;
+  border-radius: 18px;
+  margin-right: 10px;
+  font-size: 18px;
 }
 .chat-input {
   flex: 1;
@@ -485,5 +924,40 @@ async function handleCheckin(spotCode) {
   line-height: 36px;
   border-radius: 18px;
   padding: 0 15px;
+}
+.voice-btn {
+  flex: 1;
+  height: 36px;
+  line-height: 36px;
+  background-color: #f5f5f5;
+  color: #333;
+  font-size: 14px;
+  border-radius: 18px;
+  text-align: center;
+  margin: 0;
+}
+.voice-btn::after {
+  border: none;
+}
+.voice-btn.recording {
+  background-color: #e5e5e5;
+  color: #666;
+}
+
+/* 纪念卡分享按钮 */
+.share-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4e8cf5, #2563eb);
+  border-radius: 18px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+.share-btn-icon {
+  font-size: 18px;
+  line-height: 1;
 }
 </style>

@@ -96,13 +96,13 @@ SENTIMENT_CASES = [
     ("香洲造型真的很好看，感谢推荐", "pos", None),
     ("整体体验舒服，环境很好", "pos", None),
     ("见山楼登顶视野很开阔，值得一去", "pos", None),
-    ("拙政园的荷花太美了，来对了", "pos", None),
+    ("灵山胜境的景色太美了，来对了", "pos", None),
     ("导览服务很贴心，体验很好玩", "pos", None),
     ("今天游览很开心，会再来的", "pos", None),
     ("讲解内容很有历史感，棒", "pos", None),
 
     # ── 中性（neu）─────────────────────────────────────────────────────────
-    ("拙政园是什么朝代建的", "neu", "explain"),
+    ("灵山大佛是什么时候建的", "neu", "explain"),
     ("远香堂的名字是什么意思", "neu", "explain"),
     ("从这里到香洲怎么走", "neu", "navigation"),
     ("洗手间在哪里", "neu", "navigation"),
@@ -252,13 +252,77 @@ ROUTE_CASES = [
     },
 ]
 
+
+ACTIVE_ROUTE_CASES = [
+    {
+        "desc": "lingshan history/architecture preference includes a matching spot",
+        "park": "lingshan",
+        "pref": dict(history=1.0, architecture=1.0, nature=0.0, photo=0.0, family=0.0, duration_min=90),
+        "check": lambda r: r is not None and bool(
+            {s.code for s in r.spots}
+            & {"jiu_long_guan_yu", "xiang_mo_fu_diao", "xiang_fu_chan_si", "ling_shan_da_fo"}
+        ),
+    },
+    {
+        "desc": "lingshan nature/photo preference includes a matching spot",
+        "park": "lingshan",
+        "pref": dict(nature=1.0, photo=1.0, history=0.0, architecture=0.0, family=0.0, duration_min=90),
+        "check": lambda r: r is not None and bool(
+            {s.code for s in r.spots}
+            & {"bai_lian_chi", "jiu_long_guan_yu", "ling_shan_da_fo", "wu_yin_tan_cheng"}
+        ),
+    },
+    {
+        "desc": "short duration yields few lingshan spots",
+        "park": "lingshan",
+        "pref": dict(duration_min=30),
+        "check": lambda r: r is not None and len(r.spots) <= 3,
+    },
+    {
+        "desc": "long duration stays within tolerance",
+        "park": "lingshan",
+        "pref": dict(duration_min=180),
+        "check": lambda r: r is not None and r.total_minutes <= 195,
+    },
+    {
+        "desc": "unknown park returns None",
+        "park": "nonexistent_park",
+        "pref": dict(),
+        "check": lambda r: r is None,
+    },
+    {
+        "desc": "rush route has no more spots than normal route",
+        "park": "lingshan",
+        "pref_pair": (
+            dict(duration_min=120, rush=False),
+            dict(duration_min=120, rush=True),
+        ),
+        "check_pair": lambda r1, r2: (r1 is not None and r2 is not None and len(r2.spots) <= len(r1.spots)),
+    },
+    {
+        "desc": "wheelchair route only keeps accessible non-entrance spots",
+        "park": "lingshan",
+        "pref": dict(wheelchair=True, duration_min=120),
+        "check": lambda r: r is not None and len(r.spots) >= 1 and all(
+            "wheelchair_ok" in s.tags for s in r.spots if s.code != "sheng_jing_men_lou"
+        ),
+    },
+    {
+        "desc": "explicit start spot is respected",
+        "park": "lingshan",
+        "pref": dict(start_spot="fan_gong", duration_min=60),
+        "check": lambda r: r is not None and r.spots[0].code == "fan_gong",
+    },
+]
+
+
 def eval_route() -> ModuleResult:
     """KG 路线规划准确率评测（_load_park_cached 已在顶层替换为 JSON-only）。"""
     total = 0
     correct = 0
     failures = []
 
-    for case in ROUTE_CASES:
+    for case in ACTIVE_ROUTE_CASES:
         if "pref_pair" in case:
             p1 = TouristPreference(**case["pref_pair"][0])
             p2 = TouristPreference(**case["pref_pair"][1])
@@ -301,7 +365,7 @@ def eval_route() -> ModuleResult:
 
 TAGGER_CASES = [
     # ── emotion ──────────────────────────────────────────────────────────────
-    ("欢迎来到拙政园！", "joy", "wave"),
+    ("欢迎来到灵山胜境！", "joy", "wave"),
     ("您好，请跟我来！", "joy", "wave"),
     # "感谢" 在 _JOY_KW 中 → joy，但 wave 关键词无 → idle
     ("感谢您今天的游览！", "joy", "idle"),
@@ -320,7 +384,7 @@ TAGGER_CASES = [
     ("这里始建于明代正德年间。", "neutral", "explain"),
     ("再见，欢迎下次再来！", "joy", "wave"),
     # ── neutral/idle ─────────────────────────────────────────────────────────
-    ("拙政园分为东、中、西三部分。", "neutral", "idle"),
+    ("灵山胜境分为多个景区。", "neutral", "idle"),
     ("留园面积约两公顷。", "neutral", "idle"),
     ("园内有多处水景。", "neutral", "idle"),
     ("没想到景色这么美！", "surprised", "idle"),

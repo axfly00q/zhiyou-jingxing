@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+</marker>
+<filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+<feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+</filter>
+</defs>
+<rect width="1600" height="900" fill="#f8fafc"/>
+<text x="60" y="58" font-family="Microsoft YaHei, Arial, sans-serif" font-size="34" font-weight="800" fill="#0f172a" text-anchor="start">图 5  多模态数字人交互链路</text>
+<text x="60" y="95" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#64748b" text-anchor="start">语音、文本、大模型回答、TTS 与 VRM 动作表情同步</text>
+<circle cx="85" cy="148" r="18" fill="#2563eb" stroke="#fff" stroke-width="3"/>
+<text x="85" y="154" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+<text x="115" y="155" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#2563eb" text-anchor="start">多模态输入</text>
+<rect x="65" y="210" width="300" height="160" rx="14" ry="14" fill="#dbeafe" stroke="#93c5fd" stroke-width="2" filter="url(#shadow)"/>
+<text x="87" y="244" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#2563eb" text-anchor="start">游客输入</text>
+<text x="93" y="278" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 文字问题</text>
+<text x="93" y="307" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 语音提问</text>
+<text x="93" y="336" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 路线偏好</text>
+<rect x="65" y="430" width="300" height="145" rx="14" ry="14" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2" filter="url(#shadow)"/>
+<text x="87" y="464" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#2563eb" text-anchor="start">前端采集</text>
+<text x="93" y="498" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 麦克风权限</text>
+<text x="93" y="527" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 录音上传</text>
+<text x="93" y="556" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 聊天上下文</text>
+<circle cx="485" cy="148" r="18" fill="#7c3aed" stroke="#fff" stroke-width="3"/>
+<text x="485" y="154" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+<text x="515" y="155" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#7c3aed" text-anchor="start">后端编排</text>
+<rect x="455" y="230" width="340" height="230" rx="14" ry="14" fill="#ede9fe" stroke="#c4b5fd" stroke-width="2" filter="url(#shadow)"/>
+<text x="477" y="264" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#7c3aed" text-anchor="start">Orchestrator</text>
+<text x="483" y="298" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• ASR 转写</text>
+<text x="483" y="327" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 调用 RAG/LLM</text>
+<text x="483" y="356" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 情绪与动作标签</text>
+<text x="483" y="385" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• TTS 生成音频</text>
+<rect x="485" y="510" width="280" height="80" rx="14" ry="14" fill="#ffffff" stroke="#c4b5fd" stroke-width="2"/>
+<text x="625" y="545" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="800" fill="#7c3aed" text-anchor="middle">answer + audio + emotion</text>
+<text x="625" y="574" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="500" fill="#334155" text-anchor="middle">统一返回给前端</text>
+<circle cx="915" cy="148" r="18" fill="#16a34a" stroke="#fff" stroke-width="3"/>
+<text x="915" y="154" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+<text x="945" y="155" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#16a34a" text-anchor="start">数字人表现</text>
+<rect x="875" y="220" width="330" height="170" rx="14" ry="14" fill="#dcfce7" stroke="#86efac" stroke-width="2" filter="url(#shadow)"/>
+<text x="897" y="254" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#16a34a" text-anchor="start">three-vrm 渲染</text>
+<text x="903" y="288" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 浏览器本地渲染</text>
+<text x="903" y="317" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 无需服务端 GPU</text>
+<text x="903" y="346" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• VRM 1.0 模型</text>
+<rect x="875" y="445" width="330" height="170" rx="14" ry="14" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="2" filter="url(#shadow)"/>
+<text x="897" y="479" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#16a34a" text-anchor="start">动作与口型同步</text>
+<text x="903" y="513" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• ExpressionManager</text>
+<text x="903" y="542" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• VRMA 动作</text>
+<text x="903" y="571" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• TTS 音频驱动</text>
+<circle cx="1310" cy="148" r="18" fill="#ea580c" stroke="#fff" stroke-width="3"/>
+<text x="1310" y="154" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">4</text>
+<text x="1340" y="155" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#ea580c" text-anchor="start">游客感知</text>
+<rect x="1265" y="265" width="280" height="240" rx="14" ry="14" fill="#ffedd5" stroke="#fdba74" stroke-width="2" filter="url(#shadow)"/>
+<text x="1287" y="299" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#ea580c" text-anchor="start">AI 数字人导游</text>
+<text x="1293" y="333" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 看得见：形象</text>
+<text x="1293" y="362" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 听得到：播报</text>
+<text x="1293" y="391" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 能互动：问答</text>
+<text x="1293" y="420" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 有情绪：安抚/欢迎</text>
+<line x1="375" y1="290" x2="445" y2="305" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="375" y1="500" x2="445" y2="405" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="805" y1="335" x2="865" y2="310" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="805" y1="550" x2="865" y2="530" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="1215" y1="425" x2="1255" y2="385" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="215" y="710" width="1170" height="82" rx="16" ry="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" filter="url(#shadow)"/>
+<text x="800" y="760" font-family="Microsoft YaHei, Arial, sans-serif" font-size="22" font-weight="700" fill="#334155" text-anchor="middle">答辩重点：数字人不是装饰，而是把语音、知识问答、情绪反馈和导览讲解统一呈现的交互入口。</text>
+</svg>

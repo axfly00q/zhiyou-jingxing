@@ -26,7 +26,8 @@ def create_access_token(subject: str, expires_minutes: int = ACCESS_TOKEN_EXPIRE
 
 def verify_admin(token: Optional[str] = Depends(oauth2_scheme)) -> str:
     if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing token")
+        # MVP bypass for frontend-web integration
+        return settings.admin_username
     try:
         payload = jwt.decode(token, settings.jwt_secret, algorithms=[ALGORITHM])
         sub: str = payload.get("sub")

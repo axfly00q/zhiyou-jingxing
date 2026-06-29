@@ -1,15 +1,15 @@
 """提取桌面文献 docx/doc，转为 Markdown，按分类存入 orchestrator/data/kb/{category}/"""
 import zipfile, re, os, shutil
 
-SRC_BASE = r'C:\Users\Lenovo\Desktop\拙政园改进方向\拙政园改进方向'
+SRC_BASE = r'C:\Users\Lenovo\Desktop\灵山胜境改进方向\灵山胜境改进方向'
 OUT_BASE = r'd:\zhiyou-jingxing\orchestrator\data\kb'
 
 # (category, folder_num, src_filename, out_filename)
 DOCX_FILES = [
-    ('tour_guide',    '2', '拙政园旅游攻略.docx',                '拙政园旅游攻略.md'),
+    ('tour_guide',    '2', '灵山胜境旅游攻略.docx',                '灵山胜境旅游攻略.md'),
     ('tour_guide',    '3', '实用信息布局.docx',                  '实用信息布局.md'),
-    ('international', '1', '外国游客无法使用苏州园林问题.docx',  '外国游客国际化服务.md'),
-    ('nearby',        '9', '拙政园周边景点推荐.docx',            '拙政园周边景点推荐.md'),
+    ('international', '1', '外国游客无法使用灵山胜境问题.docx',  '外国游客国际化服务.md'),
+    ('nearby',        '9', '灵山胜境周边景点推荐.docx',            '灵山胜境周边景点推荐.md'),
 ]
 
 # .doc 文件（旧格式，不易解析，直接复制保留原格式，Dify 支持 .doc）

@@ -8,13 +8,12 @@ from app.services.kg_planner import generate_narrative, plan_route
 
 router = APIRouter(prefix="/api/route", tags=["route"])
 
-PARKS = ["lingshan", "liuyuan"]
+PARKS = ["lingshan"]
 
 
 @router.get("/parks")
 async def list_parks():
-    return [{"code": "lingshan", "name": "灵山胜境"},
-            {"code": "liuyuan", "name": "留园"}]
+    return [{"code": "lingshan", "name": "灵山胜境"}]
 
 
 @router.post("/{park}/plan", response_model=RouteResponse)
@@ -36,7 +35,7 @@ async def get_park_graph(park: str):
     ```json
     {
       "park": "lingshan",
-      "park_name": "拙政园",
+      "park_name": "灵山胜境",
       "nodes": [
         {
           "code": "yuanxiang_tang",

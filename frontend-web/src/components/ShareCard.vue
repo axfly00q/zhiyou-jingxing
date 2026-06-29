@@ -1,7 +1,7 @@
 <template>
   <div class="overlay" @click.self="$emit('close')">
     <div class="card">
-      <h2 class="title">保存游览纪念</h2>
+      <h2 class="title">{{ parkCode === 'lingshan' ? '保存祈福签文' : '保存游览纪念' }}</h2>
 
       <!-- 加载中 -->
       <div v-if="loading" class="loading-area">
@@ -14,7 +14,8 @@
         <div class="img-wrap">
           <img v-if="cardSrc" :src="cardSrc" class="card-img" alt="游览纪念卡" />
           <!-- html2canvas 降级 DOM -->
-          <div v-else ref="canvasDom" class="fallback-card">
+          <div v-else ref="canvasDom" class="fallback-card" :class="{ 'zen-style': parkCode === 'lingshan' }"
+               :style="parkCode === 'lingshan' ? { backgroundImage: `url(${randomBg})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}">
             <div class="fc-park">{{ parkDisplayName }}</div>
             <div class="fc-summary">{{ summary }}</div>
             <div class="fc-spots">{{ visitedSpots.join(' · ') }}</div>
@@ -56,7 +57,18 @@ const canvasDom = ref(null)
 const now = new Date()
 const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`
 
+const bgs = [
+  '/images/blessing_anime.png',
+  '/images/blessing_real.png',
+  '/images/blessing_watercolor.png',
+  '/images/blessing_ink.png',
+  '/images/blessing_3d.png'
+]
+const randomBg = ref('')
+
 onMounted(async () => {
+  randomBg.value = bgs[Math.floor(Math.random() * bgs.length)]
+
   // 1. 获取 LLM 摘要
   try {
     const r = await getSummary({
@@ -162,6 +174,18 @@ function download() {
 .fc-spots { font-size: 13px; color: #95d5b2; margin-bottom: 8px; }
 .fc-time { font-size: 13px; color: #ccc; }
 .fc-date { font-size: 13px; color: #aaa; margin-top: 4px; }
+
+/* 灵山祈福签降级样式 */
+.fallback-card.zen-style {
+  color: #4a3e35;
+  box-shadow: inset 0 0 100px rgba(255, 255, 255, 0.7);
+  background-blend-mode: overlay;
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+.fallback-card.zen-style .fc-park { color: #2c241b; }
+.fallback-card.zen-style .fc-summary { color: #5a4b40; font-weight: 500; font-size: 17px; }
+.fallback-card.zen-style .fc-spots { color: #6a5a4a; }
+.fallback-card.zen-style .fc-time, .fallback-card.zen-style .fc-date { color: #8a7a6a; }
 
 .action-row { display: flex; gap: 12px; width: 100%; }
 .btn {

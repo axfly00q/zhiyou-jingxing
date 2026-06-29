@@ -1,7 +1,25 @@
 <template>
   <div class="layout">
+    <div class="bg-layer"></div>
+    <div class="dust-particles">
+      <div v-for="i in 30" :key="i" class="dust"></div>
+    </div>
     <!-- 上：数字人画面 -->
-    <div class="avatar-pane">
+    <div class="avatar-pane" :class="{ 'night-mode': isNightMode }">
+      <!-- 基础白天背景图 -->
+      <div class="bg-day"></div>
+      <!-- 梵夜深蓝背景（通过不透明度平滑过渡） -->
+      <div class="bg-night"></div>
+      <!-- 流体光晕特效层（酥油灯） -->
+      <div class="fluid-lights" v-if="isNightMode">
+        <div class="butter-lamp lamp-1"></div>
+        <div class="butter-lamp lamp-2"></div>
+        <div class="butter-lamp lamp-3"></div>
+        <div class="butter-lamp lamp-4"></div>
+      </div>
+
+      <div class="avatar-glow"></div>
+      <Muyu v-if="parkCode === 'lingshan'" :park-code="parkCode" />
       <VrmAvatar
         ref="avatarRef"
         class="vrm-fill"
@@ -10,10 +28,14 @@
         :emotion="currentEmotion"
         :motion="currentMotion"
         :motions="motionsMap"
+        @audio-end="resetMotion"
       />
       <div class="top-bar">
         <strong class="title">{{ parkName }}</strong>
         <div class="top-bar-right">
+          <button class="theme-toggle-btn" @click="isNightMode = !isNightMode">
+            {{ isNightMode ? '梵夜 🌙' : '晨雾 🌤️' }}
+          </button>
           <button class="end-tour-btn" @click="startEndFlow">结束游览</button>
           <a href="#/preference" class="back">← 重新规划</a>
         </div>
@@ -33,10 +55,10 @@
         @checkin="handleCheckin"
       />
 
-      <!-- D2: 景区平面地图（可折叠，默认收起） -->
+      <!-- D2: 景区实时路线图（可折叠，默认展开） -->
       <div v-if="parkCode === 'lingshan' && routeSpots.length" class="map-section">
         <div class="map-toggle" @click="mapExpanded = !mapExpanded">
-          <span>🗺 景区平面图</span>
+          <span>🗺 实时路线图</span>
           <span class="map-arrow">{{ mapExpanded ? '▲' : '▼' }}</span>
         </div>
         <ParkMap
@@ -49,32 +71,51 @@
 
       <div class="messages" ref="msgBox">
         <div v-for="(m, i) in messages" :key="i" :class="['msg', m.role]">
-          <div class="bubble">
-            <div>{{ m.content }}</div>
+          <div class="bubble" :class="{ 'is-pending': m.pending }">
+            <div>{{ m.pending ? '正在思考…' : m.content }}</div>
             <div v-if="m.citations && m.citations.length" class="cites">
               出处：<span v-for="(c, idx) in m.citations" :key="idx">「{{ c.title }}」 </span>
             </div>
           </div>
         </div>
-        <div v-if="loading && !messages[messages.length-1]?.content" class="msg assistant"><div class="bubble">正在思考…</div></div>
       </div>
 
-      <!-- 预设问题 chips（静态占位，后续接 /chat/suggestions） -->
       <div class="presets">
+        <button v-if="arrivalPrompt" class="chip" @click="sendPreset(arrivalPrompt)">{{ arrivalPrompt }}</button>
         <button v-for="(q, i) in presets" :key="i" class="chip" @click="sendPreset(q)">{{ q }}</button>
       </div>
 
-      <div class="input-bar">
-        <textarea v-model="input" placeholder="输入问题，或按住右侧按钮说话…"
-                  @keydown.enter.exact.prevent="send" rows="2"></textarea>
-        <div class="btn-col">
-          <button class="btn primary" :disabled="loading || !input.trim()" @click="send">发送</button>
-          <button class="btn ghost"
-                  @mousedown="startRec" @mouseup="stopRec"
-                  @touchstart.prevent="startRec" @touchend.prevent="stopRec">
-            {{ recording ? '🎤·说话中' : '🎤 按住说话' }}
-          </button>
+      <div class="chat-input-area">
+        <div class="answer-mode-tabs">
+          <div :class="['mode-tab', { active: answerMode === 'fast' }]" @click="setAnswerMode('fast')">
+            <span class="icon">⚡</span> 精简版 · 5秒内
+          </div>
+          <div :class="['mode-tab', { active: answerMode === 'detailed' }]" @click="setAnswerMode('detailed')">
+            <span class="icon">📖</span> 详细版 · 完整讲解
+          </div>
         </div>
+
+        <div class="input-bar" :class="{ 'voice-mode': isVoiceMode }">
+          <div class="mode-toggle" @click="isVoiceMode = !isVoiceMode">
+            <span>{{ isVoiceMode ? '⌨️' : '🎤' }}</span>
+          </div>
+          <textarea v-model="input"
+                    :placeholder="isVoiceMode ? '语音识别文字会显示在这里…' : '输入问题…'"
+                    @keydown.enter.exact.prevent="send" rows="2"></textarea>
+          <div class="btn-col">
+            <template v-if="!isVoiceMode">
+              <button class="btn primary" :disabled="loading || !input.trim()" @click="send">发送</button>
+            </template>
+            <template v-else>
+              <button class="voice-btn" :class="{ recording }"
+                      @mousedown="startRec" @mouseup="stopRec"
+                      @touchstart.prevent="startRec" @touchend.prevent="stopRec">
+                {{ recording ? '🎤·说话中...' : '🎤 按住说话' }}
+              </button>
+            </template>
+          </div>
+        </div>
+        <div v-if="voiceError" class="voice-error">{{ voiceError }}</div>
       </div>
     </div>
 
@@ -117,6 +158,7 @@ import { chatCheckin, chatText, getAvatarStream, getChatPref, getChatSuggestions
 import RouteBar from '../../components/RouteBar.vue'
 import ParkMap from '../../components/ParkMap.vue'
 import VrmAvatar from '../../components/VrmAvatar.vue'
+import Muyu from '../../components/Muyu.vue'
 import RatingModal from '../../components/RatingModal.vue'
 import BadgeModal from '../../components/BadgeModal.vue'
 import QuizModal from '../../components/QuizModal.vue'
@@ -128,7 +170,10 @@ const SAMPLE_VRM_URL = 'https://cdn.jsdelivr.net/gh/pixiv/three-vrm@release/pack
 
 const parkName = sessionStorage.getItem('park_name') || '灵山胜境'
 const parkCode = sessionStorage.getItem('park') || 'lingshan'
-const mapExpanded = ref(false)
+const mapExpanded = ref(true)
+
+// 日夜模式状态
+const isNightMode = ref(false)
 
 // 结束游览弹窗状态
 const showQuiz = ref(false)
@@ -189,6 +234,52 @@ const buildRouteContext = () => {
     preferences_summary: preferencesSummary.value || null,
   }
 }
+
+const currentRouteSpot = computed(() => routeSpots.value[currentSpotIdx.value] || null)
+const arrivalPrompt = computed(() => {
+  const spot = currentRouteSpot.value
+  return spot ? `我已到达${spot.name}，请用一句话补充一个有趣的小知识或观赏建议。` : ''
+})
+
+const ARRIVAL_PATTERNS = [
+  /\u6211.*\u5230.*\u4e86/,
+  /\u5df2.*\u5230/,
+  /\u5df2\u7ecf.*\u5230/,
+  /\u5230\u8fbe/,
+  /\u62b5\u8fbe/,
+  /\u6765\u5230/,
+  /\u5230\u4e86/,
+  /\u5230\u8fd9\u91cc\u4e86/,
+  /\u5230\u8fd9\u4e86/,
+]
+const ARRIVAL_HINTS = ['\u8fd9\u91cc', '\u8fd9\u513f', '\u8fd9\u4e86', '\u5f53\u524d']
+
+function getCurrentRouteSpot() {
+  return currentRouteSpot.value
+}
+
+function isArrivalMessage(text) {
+  const spot = getCurrentRouteSpot()
+  const normalized = String(text || '').trim()
+  if (!spot || !normalized) return false
+
+  const hasArrivalIntent = ARRIVAL_PATTERNS.some(pattern => pattern.test(normalized))
+  if (!hasArrivalIntent) return false
+
+  const mentionsCurrentSpot = spot.name && normalized.includes(spot.name)
+  const mentionsHere = ARRIVAL_HINTS.some(hint => normalized.includes(hint))
+  return mentionsCurrentSpot || mentionsHere || normalized.length <= 12
+}
+
+function advanceRouteToSpot(spotCode) {
+  const prevIdx = currentSpotIdx.value
+  const spotIdx = routeSpots.value.findIndex(spot => spot.code === spotCode)
+  if (spotIdx < 0 || spotIdx < currentSpotIdx.value) {
+    return { advanced: false, prevIdx }
+  }
+  currentSpotIdx.value = Math.min(spotIdx + 1, routeSpots.value.length)
+  return { advanced: currentSpotIdx.value !== prevIdx, prevIdx }
+}
 // Web Speech API（TTS Tier-3 保底）
 const synth = window.speechSynthesis ?? null
 const sessionId = ref(crypto.randomUUID().slice(0, 16))
@@ -196,6 +287,9 @@ const messages = ref([])
 const input = ref('')
 const loading = ref(false)
 const recording = ref(false)
+const isVoiceMode = ref(false)
+const voiceError = ref('')
+const answerMode = ref(sessionStorage.getItem('answer_mode') || 'fast')
 const msgBox = ref(null)
 const avatarRef = ref(null)
 
@@ -210,6 +304,11 @@ const avatar = reactive({
 const currentAudioUrl = ref('')
 const currentEmotion = ref('neutral')
 const currentMotion = ref('idle')
+
+function resetMotion() {
+  currentMotion.value = avatar.default_motion || 'idle'
+  currentEmotion.value = 'neutral'
+}
 
 // 预设问题（从 hot-questions 接口动态加载，兜底保留静态提示）
 const presets = ref(['这里最佳拍照点？', '讲讲历史', '下一站是哪里？', '门票怎么购买？'])
@@ -227,16 +326,83 @@ const motionsMap = computed(() => {
     wave: `${base}/wave.vrma`,
     explain: `${base}/explain.vrma`,
     think: `${base}/think.vrma`,
+    beckon: `${base}/beckon.vrma`,
+    bow: `${base}/bow.vrma`,
+    clap: `${base}/clap.vrma`,
+    goodbye: `${base}/goodbye.vrma`,
+    listen: `${base}/listen.vrma`,
+    point: `${base}/point.vrma`,
+    shrug: `${base}/shrug.vrma`,
   }
 })
 
 let mediaRecorder = null
 let chunks = []
-// 麦克风音量检测（代替摄像头：说话时让数字人“听”的反馈）
+let browserSpeechRecognition = null
+let browserSpeechText = ''
+let voiceBaseInput = ''
+// 麦克风音量检测（代替摄像头：说话时让数字人"听"的反馈）
 let audioCtx = null
 let analyser = null
 let rmsTimer = 0
 let prevMotion = 'idle'
+
+function getSpeechRecognitionCtor() {
+  return window.SpeechRecognition || window.webkitSpeechRecognition
+}
+
+function applyVoiceTranscript(text) {
+  const transcript = String(text || '').trim()
+  if (!transcript) return false
+  input.value = voiceBaseInput ? `${voiceBaseInput} ${transcript}` : transcript
+  return true
+}
+
+function startBrowserSpeechRecognition() {
+  const SpeechRecognition = getSpeechRecognitionCtor()
+  browserSpeechText = ''
+  if (!SpeechRecognition) return false
+
+  try {
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'zh-CN'
+    recognition.continuous = false
+    recognition.interimResults = true
+    recognition.maxAlternatives = 1
+    recognition.onresult = (event) => {
+      let transcript = ''
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0]?.transcript || ''
+      }
+      browserSpeechText = transcript.trim()
+      if (applyVoiceTranscript(browserSpeechText)) {
+        voiceError.value = ''
+      }
+    }
+    recognition.onerror = (event) => {
+      console.warn('browser speech recognition failed', event?.error || event)
+    }
+    recognition.onend = () => {
+      browserSpeechRecognition = null
+    }
+    browserSpeechRecognition = recognition
+    recognition.start()
+    return true
+  } catch (e) {
+    browserSpeechRecognition = null
+    console.warn('browser speech recognition unavailable', e)
+    return false
+  }
+}
+
+function stopBrowserSpeechRecognition() {
+  if (!browserSpeechRecognition) return
+  try { browserSpeechRecognition.stop() } catch (e) {}
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
 
 onMounted(async () => {
   // 启动已用时间计时器
@@ -271,28 +437,70 @@ onMounted(async () => {
     console.warn('chat suggestions load failed', e)
   }
 
-  if (routeData?.narrative) {
-    push('assistant', routeData.narrative)
+  const startGreeting = (text) => {
+    push('assistant', text)
     currentEmotion.value = 'joy'
     currentMotion.value = 'wave'
-  } else {
-    push('assistant', `欢迎来到${parkName}！请问想了解什么？`)
-    currentEmotion.value = 'joy'
-    currentMotion.value = 'wave'
+    setTimeout(resetMotion, 4000)
   }
+
+  if (routeData?.narrative) {
+    startGreeting(routeData.narrative)
+  } else {
+    startGreeting(`欢迎来到${parkName}！请问想了解什么？`)
+  }
+
+  // 初始化星尘粒子
+  const dusts = document.querySelectorAll('.dust')
+  dusts.forEach(dust => {
+    dust.style.left = Math.random() * 100 + 'vw'
+    dust.style.top = Math.random() * 100 + 'vh'
+    dust.style.animationDuration = (Math.random() * 20 + 10) + 's'
+    dust.style.animationDelay = (Math.random() * -20) + 's'
+  })
 })
 
 onUnmounted(() => {
   if (elapsedTimer) clearInterval(elapsedTimer)
 })
 
+function cleanAssistantText(text) {
+  return String(text ?? '')
+    .replace(/```[a-zA-Z0-9_-]*\n?([\s\S]*?)```/g, '$1')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/\*/g, '')
+    .replace(/^\s*精简版\s*[:：]\s*/, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+
 function push(role, content, citations = []) {
+  if (role === 'assistant') content = cleanAssistantText(content)
   messages.value.push({ role, content, citations })
   nextTick(() => { msgBox.value && (msgBox.value.scrollTop = msgBox.value.scrollHeight) })
 }
 
+function setAnswerMode(mode) {
+  answerMode.value = mode
+  sessionStorage.setItem('answer_mode', mode)
+}
+
 function applyResponse(r) {
-  push('assistant', r.answer, r.citations)
+  const answer = cleanAssistantText(r.answer)
+  push('assistant', answer, r.citations)
+  currentEmotion.value = r.emotion || 'neutral'
+  currentMotion.value = r.motion || avatar.default_motion || 'idle'
+  if (r.new_route) {
+    routeSpots.value = r.new_route.spots || []
+    routeTotalMinutes.value = r.new_route.total_minutes || 0
+    currentSpotIdx.value = 0
+    sessionStorage.setItem('route', JSON.stringify(r.new_route))
+  }
   currentEmotion.value = r.emotion || 'neutral'
   currentMotion.value = r.motion || avatar.default_motion || 'idle'
   if (r.new_route) {
@@ -306,12 +514,15 @@ function applyResponse(r) {
     currentAudioUrl.value = r.audio_url + (sep ? `${sep}t=${Date.now()}` : '')
   } else {
     currentAudioUrl.value = ''
-    // TTS Tier-3：CosyVoice2 与 Tier-2 均不可用时，用浏览器内置 TTS 朗读
-    if (synth && r.answer) {
-      const utt = new SpeechSynthesisUtterance(r.answer)
+    if (synth && answer) {
+      const utt = new SpeechSynthesisUtterance(answer)
       utt.lang = 'zh-CN'
+      utt.onend = resetMotion
+      utt.onerror = resetMotion
       synth.cancel()
       synth.speak(utt)
+    } else if (!r.audio_url) {
+      setTimeout(resetMotion, 4000)
     }
   }
 }
@@ -322,11 +533,19 @@ async function send() {
   synth?.cancel()
   push('user', text)
   input.value = ''
+
+  if (isArrivalMessage(text)) {
+    const spot = getCurrentRouteSpot()
+    if (spot?.code) {
+      await handleCheckin(spot.code)
+      return
+    }
+  }
+
   loading.value = true
 
-  // 流式占位气泡
   const msgIdx = messages.value.length
-  messages.value.push({ role: 'assistant', content: '', citations: [] })
+  messages.value.push({ role: 'assistant', content: '', citations: [], pending: true })
   nextTick(() => { msgBox.value && (msgBox.value.scrollTop = msgBox.value.scrollHeight) })
 
   try {
@@ -339,6 +558,7 @@ async function send() {
         avatar_code: avatar.code || undefined,
         park_code: parkCode || undefined,
         route_context: buildRouteContext(),
+        answer_mode: answerMode.value,
       }),
     })
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
@@ -360,9 +580,11 @@ async function send() {
         try { evt = JSON.parse(line.slice(6)) } catch { continue }
 
         if (evt.type === 'token') {
-          messages.value[msgIdx].content += evt.text
+          messages.value[msgIdx].pending = false
+          messages.value[msgIdx].content = cleanAssistantText(messages.value[msgIdx].content + evt.text)
           nextTick(() => { msgBox.value && (msgBox.value.scrollTop = msgBox.value.scrollHeight) })
         } else if (evt.type === 'done') {
+          messages.value[msgIdx].pending = false
           currentEmotion.value = evt.emotion || 'neutral'
           currentMotion.value = evt.motion || avatar.default_motion || 'idle'
           if (evt.new_route) {
@@ -376,9 +598,16 @@ async function send() {
             currentAudioUrl.value = evt.audio_url + sep + 't=' + Date.now()
           } else {
             currentAudioUrl.value = ''
-            if (synth && messages.value[msgIdx].content) {
-              const utt = new SpeechSynthesisUtterance(messages.value[msgIdx].content)
-              utt.lang = 'zh-CN'; synth.cancel(); synth.speak(utt)
+            const speechText = cleanAssistantText(messages.value[msgIdx].content)
+            messages.value[msgIdx].content = speechText
+            if (synth && speechText) {
+              const utt = new SpeechSynthesisUtterance(speechText)
+              utt.lang = 'zh-CN';
+              utt.onend = resetMotion;
+              utt.onerror = resetMotion;
+              synth.cancel(); synth.speak(utt)
+            } else {
+              setTimeout(resetMotion, 4000)
             }
           }
         }
@@ -387,7 +616,7 @@ async function send() {
     setTimeout(_pollPref, 1000)
   } catch (e) {
     if (!messages.value[msgIdx]?.content) {
-      messages.value[msgIdx] = { role: 'assistant', content: '抱歉，服务暂时不可用。', citations: [] }
+      messages.value[msgIdx] = { role: 'assistant', content: '抱歉，服务暂时不可用。', citations: [], pending: false }
     }
   } finally {
     loading.value = false
@@ -397,6 +626,8 @@ async function send() {
 // B2: 打卡处理
 async function handleCheckin(spotCode) {
   if (loading.value) return
+  const routeContext = buildRouteContext()
+  const progress = advanceRouteToSpot(spotCode)
   loading.value = true
   try {
     const r = await chatCheckin({
@@ -404,19 +635,30 @@ async function handleCheckin(spotCode) {
       spot_code: spotCode,
       park_code: parkCode,
       avatar_code: avatar.code || undefined,
-      route_context: buildRouteContext(),
+      route_context: routeContext,
+      answer_mode: answerMode.value,
     })
     // 展示景点介绍
-    push('assistant', r.narrative)
+    const narrative = cleanAssistantText(r.narrative)
+    push('assistant', narrative)
     currentEmotion.value = r.emotion || 'joy'
     currentMotion.value = r.motion || 'wave'
     if (r.audio_url) {
       currentAudioUrl.value = r.audio_url + (r.audio_url.includes('?') ? '&' : '?') + 't=' + Date.now()
+    } else {
+      currentAudioUrl.value = ''
+      if (synth && narrative) {
+        const utt = new SpeechSynthesisUtterance(narrative)
+        utt.lang = 'zh-CN'
+        utt.onend = resetMotion
+        utt.onerror = resetMotion
+        synth.cancel()
+        synth.speak(utt)
+      } else {
+        setTimeout(resetMotion, 4000)
+      }
     }
     // 推进进度
-    if (currentSpotIdx.value < routeSpots.value.length) {
-      currentSpotIdx.value += 1
-    }
     // 处理成就徽章
     if (r.badge) {
       pendingBadge.value = r.badge
@@ -425,11 +667,14 @@ async function handleCheckin(spotCode) {
     // 提示下一站
     if (r.next_spot_name) {
       const walkTip = r.next_walk_minutes ? `，步行约 ${r.next_walk_minutes} 分钟` : ''
-      push('assistant', `→ 下一站：**${r.next_spot_name}**${walkTip}`)
+      push('assistant', `→ 下一站：${r.next_spot_name}${walkTip}`)
     } else if (currentSpotIdx.value >= routeSpots.value.length) {
       push('assistant', '🎉 路线全部完成！您已游遍所有景点，希望本次游览令您尽兴而归！')
     }
   } catch (e) {
+    if (progress.advanced) {
+      currentSpotIdx.value = progress.prevIdx
+    }
     push('assistant', '打卡失败，请稍后重试。')
   } finally {
     loading.value = false
@@ -444,6 +689,9 @@ function sendPreset(q) {
 
 async function startRec() {
   if (recording.value) return
+  voiceError.value = ''
+  browserSpeechText = ''
+  voiceBaseInput = input.value.trim()
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     mediaRecorder = new MediaRecorder(stream)
@@ -452,6 +700,10 @@ async function startRec() {
     mediaRecorder.onstop = uploadAudio
     mediaRecorder.start()
     recording.value = true
+    const browserStarted = startBrowserSpeechRecognition()
+    if (!browserStarted) {
+      voiceError.value = '浏览器语音识别不可用，将使用后端识别。'
+    }
     // 启动音量检测，驱动数字人“在听”反馈
     try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)()
@@ -484,6 +736,7 @@ async function startRec() {
 function stopRec() {
   if (!recording.value) return
   recording.value = false
+  stopBrowserSpeechRecognition()
   try { mediaRecorder?.stop() } catch (e) {}
   if (rmsTimer) { clearInterval(rmsTimer); rmsTimer = 0 }
   if (audioCtx) { try { audioCtx.close() } catch (_) {} audioCtx = null; analyser = null }
@@ -491,20 +744,29 @@ function stopRec() {
 }
 
 async function uploadAudio() {
+  await wait(600)
+  if (applyVoiceTranscript(browserSpeechText)) {
+    isVoiceMode.value = false
+    voiceError.value = ''
+    return
+  }
+
   const blob = new Blob(chunks, { type: 'audio/webm' })
   const fd = new FormData()
   fd.append('session_id', sessionId.value)
-  if (avatar.code) fd.append('avatar_code', avatar.code)
   fd.append('audio', blob, 'recording.webm')
   loading.value = true
-  push('user', '🎤（语音消息）')
   try {
-    const resp = await fetch('/api/chat/voice', { method: 'POST', body: fd })
+    const resp = await fetch('/api/chat/transcribe', { method: 'POST', body: fd })
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
     const r = await resp.json()
-    applyResponse(r)
-    setTimeout(_pollPref, 1000)
+    const text = String(r?.text || '').trim()
+    if (!text) throw new Error('empty transcript')
+    input.value = input.value.trim() ? `${input.value.trim()} ${text}` : text
+    isVoiceMode.value = false
+    voiceError.value = ''
   } catch (e) {
-    push('assistant', '语音识别失败。')
+    voiceError.value = '语音识别失败，请再说一次。'
   } finally {
     loading.value = false
   }
@@ -549,49 +811,96 @@ function onRatingDone() {
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif+SC:wght@400;700;900&display=swap');
 .serif-font { font-family: 'Noto Serif SC', 'Songti SC', 'STSong', serif; }
 
-.layout { display: flex; flex-direction: row; width: 100%; height: 100vh; height: 100dvh; background: #05080c; overflow: hidden; font-family: 'Inter', system-ui, sans-serif; }
+.layout { display: flex; flex-direction: row; width: 100%; height: 100vh; height: 100dvh; background: #000; overflow: hidden; font-family: 'Inter', system-ui, sans-serif; position: relative; padding: 2.5vh 2.5vw; gap: 2vw; box-sizing: border-box; }
 
-.avatar-pane { position: relative; flex: 0 0 45%; background-image: url('/images/lingshan_bg.png'); background-size: cover; background-position: center; overflow: hidden; }
-.avatar-pane::before { content: ''; position: absolute; inset: 0; background: rgba(5, 8, 12, 0.4); z-index: 0; }
+.bg-layer { position: absolute; top: -10%; left: -10%; right: -10%; bottom: -10%; background-image: url('/images/lingshan_bg.png'); background-size: cover; background-position: center top; filter: brightness(0.3) blur(8px) saturate(1.1); z-index: 0; pointer-events: none; }
+
+.dust-particles { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.dust { position: absolute; width: 2px; height: 2px; background-color: rgba(234, 179, 8, 0.7); border-radius: 50%; box-shadow: 0 0 6px 2px rgba(234, 179, 8, 0.6); animation: floatUp 18s linear infinite; }
+@keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 0.8; } 100% { transform: translateY(-110vh) scale(0.5); opacity: 0; } }
+
+.avatar-pane { position: relative; flex: 0 0 calc(45% - 1vw); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); overflow: hidden; z-index: 2; }
+
+.bg-day, .bg-night { position: absolute; inset: 0; transition: opacity 2.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 0; }
+.bg-day { background-image: url('/images/lingshan_arch.png'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; opacity: 1; }
+.night-mode .bg-day { opacity: 0; }
+.bg-night { background: linear-gradient(180deg, #050a1f 0%, #0a1b44 50%, #112d6a 100%); opacity: 0; }
+.night-mode .bg-night { opacity: 1; }
+
+.fluid-lights { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.butter-lamp { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(255,180,50,0.8) 0%, rgba(255,150,0,0.4) 30%, rgba(255,100,0,0) 70%); opacity: 0; animation: lamp-bloom 3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards, lamp-breathe 4s ease-in-out infinite alternate 3s; }
+@keyframes lamp-bloom { 0% { transform: scale(0.3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes lamp-breathe { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.15); opacity: 1; } }
+.lamp-1 { bottom: 5%; left: 15%; width: 180px; height: 180px; }
+.lamp-2 { bottom: 25%; right: 10%; width: 220px; height: 220px; animation-delay: 0.3s, 3.3s; }
+.lamp-3 { top: 35%; left: 5%; width: 140px; height: 140px; animation-delay: 0.6s, 3.6s; }
+.lamp-4 { top: 15%; right: 20%; width: 100px; height: 100px; animation-delay: 0.9s, 3.9s; }
+
+.avatar-pane::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(5,8,12,0.3) 100%); z-index: 1; pointer-events: none; }
+.avatar-glow { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 90%; height: 60%; background: radial-gradient(ellipse at center bottom, rgba(234,179,8,0.3) 0%, rgba(234,179,8,0.1) 40%, rgba(0,0,0,0) 70%); z-index: 1; pointer-events: none; }
 
 .vrm-fill { position: absolute; inset: 0; z-index: 1; }
 .top-bar { position: absolute; top: env(safe-area-inset-top, 0); left: 0; right: 0; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; color: #fff; z-index: 2; pointer-events: none; }
 .top-bar .title { font-family: 'Noto Serif SC', serif; font-size: clamp(18px, 3.2vw, 28px); letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-.top-bar-right { display: flex; align-items: center; gap: 10px; pointer-events: auto; }
-.top-bar .back { pointer-events: auto; color: #eab308; text-decoration: none; font-size: clamp(13px, 2vw, 18px); background: rgba(255,255,255,0.08); padding: 8px 14px; border-radius: 999px; backdrop-filter: blur(8px); border: 1px solid rgba(234, 179, 8, 0.3); }
-.end-tour-btn { pointer-events: auto; background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: #000; font-weight: 600; border: none; padding: 8px 14px; border-radius: 999px; font-size: clamp(13px, 2vw, 18px); cursor: pointer; backdrop-filter: blur(8px); }
+.top-bar-right { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
+.theme-toggle-btn { pointer-events: auto; background: rgba(255,255,255,0.1); color: #fdf6e3; border: 1px solid rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 999px; font-size: clamp(13px, 2vw, 15px); cursor: pointer; backdrop-filter: blur(12px); transition: all 0.3s; }
+.theme-toggle-btn:hover { background: rgba(255,255,255,0.2); }
+.top-bar .back { pointer-events: auto; color: #fdf6e3; text-decoration: none; font-size: clamp(13px, 2vw, 15px); background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 999px; backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15); transition: all 0.3s; }
+.top-bar .back:hover { background: rgba(255,255,255,0.2); }
+.end-tour-btn { pointer-events: auto; background: linear-gradient(135deg, rgba(234, 179, 8, 0.9), rgba(202, 138, 4, 0.9)); color: #111; font-weight: 600; border: none; padding: 8px 20px; border-radius: 999px; font-size: clamp(13px, 2vw, 15px); cursor: pointer; backdrop-filter: blur(12px); transition: all 0.3s; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2); }
+.end-tour-btn:hover { background: linear-gradient(135deg, #facc15, #eab308); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(234, 179, 8, 0.3); }
 
 .interrupt-btn { position: absolute; right: 20px; bottom: 20px; width: clamp(56px, 8vw, 88px); height: clamp(56px, 8vw, 88px); border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: #fff; font-size: clamp(20px, 3.5vw, 32px); cursor: pointer; backdrop-filter: blur(8px); z-index: 2; }
 
-.chat-pane { flex: 1 1 55%; min-height: 0; display: flex; flex-direction: column; background: rgba(10, 15, 25, 0.85); backdrop-filter: blur(24px); border-left: 1px solid rgba(255,255,255,0.05); padding-bottom: env(safe-area-inset-bottom, 0); color: #e5e7eb; }
+.chat-pane { flex: 1 1 calc(55% - 1vw); min-height: 0; display: flex; flex-direction: column; background: rgba(10, 14, 20, 0.55); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5); overflow: hidden; padding-bottom: env(safe-area-inset-bottom, 0); color: #e5e7eb; z-index: 2; position: relative; }
 
 .route-map-container { flex: 0 0 auto; display: flex; flex-direction: column; border-bottom: 1px solid rgba(255,255,255,0.05); overflow-y: auto; }
 .messages { flex: 1; min-height: 0; overflow-y: auto; padding: 24px; -webkit-overflow-scrolling: touch; }
 .msg { margin: 12px 0; display: flex; }
 .msg.user { justify-content: flex-end; }
-.bubble { max-width: 82%; padding: 14px 18px; border-radius: 18px; line-height: 1.6; white-space: pre-wrap; font-size: clamp(14px, 2.6vw, 16px); backdrop-filter: blur(12px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-.msg.user .bubble { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-bottom-right-radius: 4px; }
-.msg.assistant .bubble { background: rgba(255,255,255,0.05); color: #e5e7eb; border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
+.bubble { max-width: 82%; padding: 14px 20px; border-radius: 20px; line-height: 1.6; white-space: pre-wrap; font-size: clamp(14px, 2.6vw, 15px); backdrop-filter: blur(12px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); letter-spacing: 0.5px; }
+.msg.user .bubble { background: linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(234, 179, 8, 0.05)); color: #fdf6e3; border: 1px solid rgba(234, 179, 8, 0.2); border-bottom-right-radius: 6px; }
+.msg.assistant .bubble { background: rgba(255,255,255,0.06); color: #f3f4f6; border: 1px solid rgba(255,255,255,0.08); border-bottom-left-radius: 6px; }
+.msg.assistant .bubble.is-pending { color: #c8d8ff; opacity: 0.82; animation: thinking-pulse 1.2s ease-in-out infinite; }
 .cites { font-size: clamp(11px, 1.8vw, 13px); color: #9ca3af; margin-top: 8px; }
 
-.presets { display: flex; gap: 12px; padding: 12px 24px; overflow-x: auto; scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; border-top: 1px solid rgba(255,255,255,0.05); }
+@keyframes thinking-pulse {
+  0%, 100% { opacity: 0.68; }
+  50% { opacity: 1; }
+}
+
+.presets { display: flex; gap: 12px; padding: 12px 24px; overflow-x: auto; scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; }
 .presets::-webkit-scrollbar { display: none; }
 .map-section { flex: 0 0 auto; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.map-toggle { display: flex; justify-content: space-between; align-items: center; padding: 10px 24px; cursor: pointer; font-size: 14px; color: #d1d5db; background: rgba(255,255,255,0.02); }
+.map-toggle { display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; cursor: pointer; font-size: 14px; color: #d1d5db; background: rgba(255,255,255,0.02); transition: background 0.3s; }
+.map-toggle:hover { background: rgba(255,255,255,0.06); color: #f3f4f6; }
 .map-arrow { color: #9ca3af; font-size: 11px; }
-.chip { flex: 0 0 auto; scroll-snap-align: start; padding: 8px 16px; border: 1px solid rgba(234, 179, 8, 0.3); background: rgba(234, 179, 8, 0.1); color: #eab308; border-radius: 999px; font-size: clamp(13px, 2.2vw, 15px); cursor: pointer; white-space: nowrap; transition: all 0.3s; }
-.chip:hover { background: rgba(234, 179, 8, 0.2); }
+.chip { flex: 0 0 auto; scroll-snap-align: start; padding: 10px 20px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); color: #d1d5db; border-radius: 999px; font-size: clamp(13px, 2.2vw, 14px); cursor: pointer; white-space: nowrap; transition: all 0.4s ease; backdrop-filter: blur(8px); }
+.chip:hover { background: rgba(234, 179, 8, 0.15); color: #fdf6e3; border-color: rgba(234, 179, 8, 0.4); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(234, 179, 8, 0.1); }
 
-.input-bar { flex: 0 0 auto; padding: 16px 24px 24px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: stretch; }
-textarea { resize: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; font-size: clamp(14px, 2.2vw, 16px); font-family: inherit; outline: none; background: rgba(0,0,0,0.3); color: #fff; transition: border-color 0.3s; }
-textarea:focus { border-color: #10b981; }
+.chat-input-area { flex: 0 0 auto; display: flex; flex-direction: column; padding: 12px 24px 24px; }
+.answer-mode-tabs { display: flex; gap: 12px; margin-bottom: 12px; padding-left: 4px; }
+.mode-tab { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #9ca3af; cursor: pointer; transition: all 0.3s; padding: 6px 16px; border-radius: 999px; border: 1px solid transparent; background: rgba(255,255,255,0.03); }
+.mode-tab:hover { color: #d1d5db; background: rgba(255, 255, 255, 0.08); border-color: rgba(255,255,255,0.1); }
+.mode-tab.active { color: #fdf6e3; background: rgba(234, 179, 8, 0.15); border-color: rgba(234, 179, 8, 0.3); font-weight: 500; }
+.mode-tab .icon { font-size: 14px; }
+
+.input-bar { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: stretch; }
+.input-bar.voice-mode { grid-template-columns: auto 1fr auto; }
+.mode-toggle { display: flex; justify-content: center; align-items: center; width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.05); color: #eab308; font-size: 20px; cursor: pointer; align-self: center; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; }
+.mode-toggle:hover { background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.3); }
+textarea { resize: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 14px 16px; font-size: clamp(14px, 2.2vw, 15px); font-family: inherit; outline: none; background: rgba(255,255,255,0.03); color: #fff; transition: all 0.3s; line-height: 1.5; }
+textarea:focus { border-color: rgba(234, 179, 8, 0.5); background: rgba(255,255,255,0.06); box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.1); }
 .btn-col { display: flex; flex-direction: column; gap: 8px; }
-.btn { border: none; border-radius: 12px; padding: 0 16px; min-width: clamp(64px, 8vw, 96px); min-height: 44px; font-size: clamp(13px, 2vw, 15px); font-weight: 500; cursor: pointer; transition: all 0.3s; }
-.btn.primary { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-.btn.primary:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn.primary:not(:disabled):hover { background: rgba(16, 185, 129, 0.25); }
+.btn { border: none; border-radius: 14px; padding: 0 20px; min-width: clamp(72px, 8vw, 100px); min-height: 48px; font-size: clamp(14px, 2vw, 15px); font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; }
+.btn.primary { background: linear-gradient(135deg, rgba(234, 179, 8, 0.9), rgba(202, 138, 4, 0.9)); color: #111; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2); }
+.btn.primary:disabled { opacity: 0.4; cursor: not-allowed; background: rgba(255,255,255,0.1); color: #9ca3af; box-shadow: none; }
+.btn.primary:not(:disabled):hover { background: linear-gradient(135deg, #facc15, #eab308); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(234, 179, 8, 0.3); }
 .btn.ghost { background: transparent; color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
 .btn.ghost:active { background: rgba(234, 179, 8, 0.1); }
+.voice-btn { border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 16px; background: rgba(234, 179, 8, 0.1); color: #eab308; font-size: clamp(14px, 2.5vw, 18px); cursor: pointer; height: 50px; align-self: center; font-weight: 500; transition: all 0.3s; }
+.voice-btn.recording { background: rgba(234, 179, 8, 0.25); color: #fde047; border-color: #eab308; }
+.voice-error { margin: 8px 0 0 58px; color: #fca5a5; font-size: 13px; }
 
-@media (max-width: 1024px) and (orientation: portrait) { .layout { flex-direction: column; } .avatar-pane { flex: 0 0 50vh; } .chat-pane { flex: 1 1 50vh; border-left: none; border-top: 1px solid rgba(255,255,255,0.05); } }
+@media (max-width: 1024px) and (orientation: portrait) { .layout { flex-direction: column; padding: 1.5vh 3vw; gap: 1.5vh; } .avatar-pane { flex: 0 0 45vh; width: 100%; border-radius: 20px; } .chat-pane { flex: 1 1 auto; width: 100%; border-radius: 20px; } }
 </style>

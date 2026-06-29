@@ -1,7 +1,7 @@
 <template>
   <div class="overlay" @click.self="$emit('close')">
     <div class="card">
-      <h2 class="title">保存游览纪念</h2>
+      <h2 class="title">{{ parkCode === 'lingshan' ? '保存祈福签文' : '保存游览纪念' }}</h2>
 
       <!-- 加载中 -->
       <div v-if="loading" class="loading-area">
@@ -12,9 +12,25 @@
       <!-- 图片显示 -->
       <template v-else>
         <div class="img-wrap">
-          <img v-if="cardSrc" :src="cardSrc" class="card-img" alt="游览纪念卡" />
+          <!-- 图片：移动端长按可保存；桌面端点击可下载 -->
+          <img
+            v-if="cardSrc"
+            :src="cardSrc"
+            class="card-img"
+            alt="游览纪念卡"
+            title="长按图片保存到相册"
+            @contextmenu.prevent
+          />
           <!-- html2canvas 降级 DOM -->
-          <div v-else ref="canvasDom" class="fallback-card">
+          <div
+            v-else
+            ref="canvasDom"
+            class="fallback-card"
+            :class="{ 'zen-style': parkCode === 'lingshan' }"
+            :style="parkCode === 'lingshan'
+              ? { backgroundImage: `url(${randomBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+              : {}"
+          >
             <div class="fc-park">{{ parkDisplayName }}</div>
             <div class="fc-summary">{{ summary }}</div>
             <div class="fc-spots">{{ visitedSpots.join(' · ') }}</div>
@@ -24,10 +40,21 @@
         </div>
 
         <div class="action-row">
-          <button class="btn primary" @click="download">💾 保存图片</button>
+          <!-- 移动端：优先调系统分享；桌面：直接下载 -->
+          <button class="btn primary" @click="saveOrShare">
+            {{ isMobile ? '📲 保存 / 分享' : '💾 保存图片' }}
+          </button>
           <button class="btn ghost" @click="$emit('close')">关闭</button>
         </div>
-        <p class="tip">长按图片可直接分享给好友</p>
+
+        <!-- 移动端提示 -->
+        <p v-if="isMobile" class="tip">👆 长按上方图片可直接保存到相册</p>
+        <p v-else class="tip">点击「保存图片」即可下载到本地</p>
+
+        <!-- Toast 提示 -->
+        <transition name="toast-fade">
+          <div v-if="toastMsg" class="toast">{{ toastMsg }}</div>
+        </transition>
       </template>
     </div>
   </div>
@@ -36,6 +63,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getSummary, getShareCard } from '../api.js'
+
+const randomBg = ref('')
 
 const props = defineProps({
   sessionId: String,
@@ -57,6 +86,15 @@ const now = new Date()
 const dateStr = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`
 
 onMounted(async () => {
+  const bgs = [
+    '/images/blessing_anime.png',
+    '/images/blessing_real.png',
+    '/images/blessing_watercolor.png',
+    '/images/blessing_ink.png',
+    '/images/blessing_3d.png'
+  ]
+  randomBg.value = bgs[Math.floor(Math.random() * bgs.length)]
+
   // 1. 获取 LLM 摘要
   try {
     const r = await getSummary({
@@ -103,12 +141,62 @@ onMounted(async () => {
   loading.value = false
 })
 
-function download() {
+// 检测是否移动端
+const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(
+  typeof navigator !== 'undefined' ? navigator.userAgent : ''
+)
+
+// Toast
+const toastMsg = ref('')
+function showToast(msg, ms = 2500) {
+  toastMsg.value = msg
+  setTimeout(() => { toastMsg.value = '' }, ms)
+}
+
+// 保存 / 分享
+async function saveOrShare() {
   if (!cardSrc.value) return
+
+  const suffix = props.parkCode === 'lingshan' ? '祈福签文' : '游览纪念'
+  const filename = `${parkDisplayName.value}_${suffix}.png`
+
+  // ① 移动端：优先使用 Web Share API（微信内置浏览器也支持）
+  if (isMobile && navigator.share) {
+    try {
+      // 将 base64 转成 File 对象
+      const res = await fetch(cardSrc.value)
+      const blob = await res.blob()
+      const file = new File([blob], filename, { type: 'image/png' })
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename })
+        return
+      }
+    } catch (e) {
+      // 用户取消 or 不支持文件分享，继续尝试下载
+    }
+    // ② 移动端回退：a 标签触发下载（部分安卓支持）
+    try {
+      const a = document.createElement('a')
+      a.href = cardSrc.value
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      showToast('图片已保存，请查看下载记录 📥')
+    } catch (_) {
+      showToast('请长按上方图片，选择「保存图片」')
+    }
+    return
+  }
+
+  // ③ 桌面端：直接下载
   const a = document.createElement('a')
   a.href = cardSrc.value
-  a.download = `${parkDisplayName.value}_游览纪念.png`
+  a.download = filename
+  document.body.appendChild(a)
   a.click()
+  document.body.removeChild(a)
+  showToast('图片已下载 ✅')
 }
 </script>
 
@@ -157,18 +245,64 @@ function download() {
   font-family: 'Noto Serif SC', serif;
   box-sizing: border-box;
 }
+.fallback-card.zen-style {
+  background-color: #dfd8cf; /* fallback color */
+  color: #3b312b;
+  border: 1px solid #c8bdae;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+  position: relative;
+}
+.fallback-card.zen-style::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.65); /* white overlay to ensure text is readable */
+  border-radius: 12px;
+  z-index: 0;
+}
+.fallback-card.zen-style > * {
+  position: relative;
+  z-index: 1;
+}
 .fc-park { font-size: 26px; font-weight: 700; margin-bottom: 10px; letter-spacing: 2px; }
 .fc-summary { font-size: 16px; line-height: 1.6; margin-bottom: 14px; color: #b7e4c7; }
+.zen-style .fc-summary { color: #5a4b41; font-weight: 600; }
 .fc-spots { font-size: 13px; color: #95d5b2; margin-bottom: 8px; }
+.zen-style .fc-spots { color: #857467; }
 .fc-time { font-size: 13px; color: #ccc; }
+.zen-style .fc-time { color: #9a8a7a; }
 .fc-date { font-size: 13px; color: #aaa; margin-top: 4px; }
+.zen-style .fc-date { color: #aba094; }
 
 .action-row { display: flex; gap: 12px; width: 100%; }
 .btn {
   flex: 1; padding: 13px; border-radius: 12px; border: none;
   font-size: 16px; font-weight: 600; cursor: pointer;
+  transition: opacity 0.15s;
 }
-.btn.primary { background: #2c7be5; color: #fff; }
+.btn:active { opacity: 0.8; }
+.btn.primary { background: linear-gradient(135deg, #2c7be5, #1a5bbf); color: #fff; }
 .btn.ghost { background: #fff; color: #888; border: 1px solid #ddd; }
 .tip { font-size: 13px; color: #aaa; margin: 0; }
+
+/* 图片长按样式 */
+.card-img { -webkit-user-select: none; user-select: none; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: 24px;
+  white-space: nowrap;
+  z-index: 2000;
+  pointer-events: none;
+}
+.toast-fade-enter-active, .toast-fade-leave-active { transition: opacity 0.3s; }
+.toast-fade-enter-from, .toast-fade-leave-to { opacity: 0; }
 </style>

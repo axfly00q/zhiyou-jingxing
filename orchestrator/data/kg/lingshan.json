@@ -10,11 +10,33 @@
       "highlight": "灵山胜境的正大门，气势恢宏的传统建筑。",
       "suggested_minutes": 10,
       "tags": ["wheelchair_ok", "child_ok"],
-      "map_x": 50.0, "map_y": 80.0,
-      "neighbors": [{"code": "jiu_long_guan_yu", "walk_minutes": 5}],
+      "map_x": 50.0, "map_y": 85.0,
+      "neighbors": [{"code": "a_yu_wang_zhu", "walk_minutes": 3}],
       "quiz": [
         {"q": "灵山胜境门楼的风格是什么？", "options": ["哥特式", "唐宋建筑风格", "欧式", "江南水乡风"], "answer": 1, "fact": "门楼气势宏伟，展现了唐宋时期的佛教建筑特色。"}
       ]
+    },
+    {
+      "code": "a_yu_wang_zhu",
+      "name": "阿育王柱",
+      "themes": {"history": 0.8, "nature": 0.2, "architecture": 0.7, "family": 0.4, "photo": 0.8},
+      "highlight": "中国第一石柱，上面雕刻有精美的佛教图案。",
+      "suggested_minutes": 10,
+      "tags": ["wheelchair_ok", "child_ok"],
+      "map_x": 50.0, "map_y": 78.0,
+      "neighbors": [{"code": "sheng_jing_men_lou", "walk_minutes": 3}, {"code": "bai_zi_xi_mi_le", "walk_minutes": 3}],
+      "quiz": []
+    },
+    {
+      "code": "bai_zi_xi_mi_le",
+      "name": "百子戏弥勒",
+      "themes": {"history": 0.5, "nature": 0.3, "architecture": 0.6, "family": 1.0, "photo": 0.9},
+      "highlight": "大型青铜艺术珍品，寓意弥勒佛包容一切、快乐欢喜。",
+      "suggested_minutes": 15,
+      "tags": ["wheelchair_ok", "child_ok"],
+      "map_x": 50.0, "map_y": 70.0,
+      "neighbors": [{"code": "a_yu_wang_zhu", "walk_minutes": 3}, {"code": "jiu_long_guan_yu", "walk_minutes": 5}],
+      "quiz": []
     },
     {
       "code": "jiu_long_guan_yu",
@@ -24,10 +46,65 @@
       "suggested_minutes": 20,
       "tags": ["wheelchair_ok", "child_ok"],
       "map_x": 50.0, "map_y": 60.0,
-      "neighbors": [{"code": "sheng_jing_men_lou", "walk_minutes": 5}, {"code": "ling_shan_da_fo", "walk_minutes": 15}, {"code": "fan_gong", "walk_minutes": 10}],
+      "neighbors": [{"code": "bai_zi_xi_mi_le", "walk_minutes": 5}, {"code": "bai_lian_chi", "walk_minutes": 3}, {"code": "xiang_mo_fu_diao", "walk_minutes": 5}, {"code": "fan_gong", "walk_minutes": 10}],
       "quiz": [
         {"q": "九龙灌浴表现的是哪位佛教人物的诞生？", "options": ["观音菩萨", "释迦牟尼", "弥勒佛", "地藏菩萨"], "answer": 1, "fact": "再现了释迦牟尼佛诞生时，九龙吐水为其沐浴的壮观场景。"}
       ]
+    },
+    {
+      "code": "bai_lian_chi",
+      "name": "白莲池",
+      "themes": {"history": 0.2, "nature": 0.9, "architecture": 0.3, "family": 0.7, "photo": 0.8},
+      "highlight": "放生池内锦鲤游弋，周围白莲盛开，环境幽雅清静。",
+      "suggested_minutes": 15,
+      "tags": ["wheelchair_ok", "child_ok"],
+      "map_x": 40.0, "map_y": 60.0,
+      "neighbors": [{"code": "jiu_long_guan_yu", "walk_minutes": 3}],
+      "quiz": []
+    },
+    {
+      "code": "xiang_mo_fu_diao",
+      "name": "降魔浮雕",
+      "themes": {"history": 0.9, "nature": 0.1, "architecture": 0.8, "family": 0.4, "photo": 0.7},
+      "highlight": "大型紫铜浮雕壁画，记录了释迦牟尼降服魔军成道的故事。",
+      "suggested_minutes": 10,
+      "tags": ["wheelchair_ok"],
+      "map_x": 50.0, "map_y": 50.0,
+      "neighbors": [{"code": "jiu_long_guan_yu", "walk_minutes": 5}, {"code": "xiang_fu_chan_si", "walk_minutes": 5}],
+      "quiz": []
+    },
+    {
+      "code": "xiang_fu_chan_si",
+      "name": "祥符禅寺",
+      "themes": {"history": 1.0, "nature": 0.4, "architecture": 0.8, "family": 0.3, "photo": 0.7},
+      "highlight": "千年古刹，香火鼎盛，是大佛脚下的著名寺庙。",
+      "suggested_minutes": 30,
+      "tags": ["wheelchair_ok"],
+      "map_x": 50.0, "map_y": 40.0,
+      "neighbors": [{"code": "xiang_mo_fu_diao", "walk_minutes": 5}, {"code": "san_sheng_dian", "walk_minutes": 3}, {"code": "fo_zu_tan", "walk_minutes": 5}],
+      "quiz": []
+    },
+    {
+      "code": "san_sheng_dian",
+      "name": "三圣殿",
+      "themes": {"history": 0.8, "nature": 0.1, "architecture": 0.7, "family": 0.2, "photo": 0.5},
+      "highlight": "供奉西方三圣，建筑庄严，是信众祈福的圣地。",
+      "suggested_minutes": 15,
+      "tags": ["wheelchair_ok"],
+      "map_x": 40.0, "map_y": 40.0,
+      "neighbors": [{"code": "xiang_fu_chan_si", "walk_minutes": 3}],
+      "quiz": []
+    },
+    {
+      "code": "fo_zu_tan",
+      "name": "佛足坛",
+      "themes": {"history": 0.7, "nature": 0.2, "architecture": 0.6, "family": 0.4, "photo": 0.6},
+      "highlight": "印有佛陀巨大足迹的神圣祭坛，代表佛法无边。",
+      "suggested_minutes": 10,
+      "tags": ["wheelchair_ok"],
+      "map_x": 50.0, "map_y": 30.0,
+      "neighbors": [{"code": "xiang_fu_chan_si", "walk_minutes": 5}, {"code": "ling_shan_da_fo", "walk_minutes": 5}],
+      "quiz": []
     },
     {
       "code": "ling_shan_da_fo",
@@ -36,8 +113,8 @@
       "highlight": "高达88米的释迦牟尼露天青铜立像，是景区的核心标志。",
       "suggested_minutes": 60,
       "tags": ["child_ok"],
-      "map_x": 50.0, "map_y": 20.0,
-      "neighbors": [{"code": "jiu_long_guan_yu", "walk_minutes": 15}],
+      "map_x": 50.0, "map_y": 15.0,
+      "neighbors": [{"code": "fo_zu_tan", "walk_minutes": 5}],
       "quiz": [
         {"q": "灵山大佛的高度是多少米？", "options": ["68米", "78米", "88米", "98米"], "answer": 2, "fact": "灵山大佛高达88米，加上莲花座，总高度达100余米。"}
       ]
@@ -49,7 +126,7 @@
       "highlight": "被誉为'东方卢浮宫'的佛教文化艺术殿堂，内有《吉祥颂》演出。",
       "suggested_minutes": 90,
       "tags": ["wheelchair_ok", "child_ok"],
-      "map_x": 70.0, "map_y": 50.0,
+      "map_x": 75.0, "map_y": 50.0,
       "neighbors": [{"code": "jiu_long_guan_yu", "walk_minutes": 10}, {"code": "wu_yin_tan_cheng", "walk_minutes": 5}],
       "quiz": [
         {"q": "灵山梵宫被誉为什么？", "options": ["东方明珠", "东方卢浮宫", "佛教圣地", "江南第一寺"], "answer": 1, "fact": "梵宫汇集了众多中国当代建筑、雕塑、绘画艺术大师的杰作，被誉为东方卢浮宫。"}
@@ -62,7 +139,7 @@
       "highlight": "展现藏传佛教文化的特色建筑，倒影在香水海中尤为迷人。",
       "suggested_minutes": 30,
       "tags": ["wheelchair_ok"],
-      "map_x": 75.0, "map_y": 60.0,
+      "map_x": 80.0, "map_y": 65.0,
       "neighbors": [{"code": "fan_gong", "walk_minutes": 5}],
       "quiz": [
         {"q": "五印坛城主要展现的是哪种佛教文化？", "options": ["汉传佛教", "藏传佛教", "南传佛教", "禅宗"], "answer": 1, "fact": "五印坛城是典型的藏传佛教风格建筑，内部供奉众多藏传佛教圣物。"}

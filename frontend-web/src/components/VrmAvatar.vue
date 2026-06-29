@@ -41,6 +41,8 @@ const props = defineProps({
   motions: { type: Object, default: () => ({}) },
 })
 
+const emit = defineEmits(['audio-end'])
+
 const root = ref(null)
 const canvas = ref(null)
 const status = ref('loading') // loading | ready | empty | error
@@ -64,6 +66,7 @@ let idleElapsed = 0
 
 const lipSync = new LipSyncAnalyzer()
 let audioEl = null
+const LOOPING_MOTIONS = new Set(['idle', 'listen', 'think'])
 
 // VRM Humanoid 标准骨骼枚举（避免拼写错误）
 const BONE = {
@@ -105,6 +108,16 @@ function tickProceduralIdle(vrm, elapsed) {
   if (chest) { chest.rotation.x = breath; chest.rotation.z = sway * 0.4 }
   if (spine) { spine.rotation.z = sway }
   if (head)  { head.rotation.y = headYaw; head.rotation.x = headPitch }
+}
+
+function shouldLoopMotion(name) {
+  return LOOPING_MOTIONS.has(name || 'idle')
+}
+
+function playMotion(name) {
+  if (!motionCtl) return
+  const motionName = name || 'idle'
+  motionCtl.play(motionName, { loop: shouldLoopMotion(motionName) })
 }
 
 // ---------- three.js 场景 ----------
@@ -196,6 +209,11 @@ async function loadVrm(url) {
     scene.add(vrm.scene)
     currentVrm = vrm
     mixer = new THREE.AnimationMixer(vrm.scene)
+    mixer.addEventListener('finished', () => {
+      if (!shouldLoopMotion(motionCtl?.currentName)) {
+        playMotion('idle')
+      }
+    })
     motionCtl = new MotionController(mixer, {})
     // 先用程序化 rest pose 解 T-pose（即便没有 vrma 也不会僵直）
     applyRestPose(vrm)
@@ -215,7 +233,7 @@ async function loadVrm(url) {
     const wanted = props.motion || 'idle'
     if (clipMap[wanted]) {
       hasRealMotion = true
-      motionCtl.play(wanted)
+      playMotion(wanted)
     }
     applyEmotion(vrm, props.emotion)
   } catch (e) {
@@ -279,16 +297,23 @@ function attachAudio(url) {
     audioEl = null
   }
   if (!url) return
+  playMotion(props.motion || 'idle')
   audioEl = new Audio()
   audioEl.crossOrigin = 'anonymous'
   audioEl.src = url
   audioEl.addEventListener('canplay', async () => {
     lipSync.attach(audioEl)
     await lipSync.resume()
-    try { await audioEl.play() } catch (e) { console.warn('audio play blocked:', e) }
+    try {
+      await audioEl.play()
+    } catch (e) {
+      console.warn('audio play blocked:', e)
+      emit('audio-end')
+    }
   }, { once: true })
   audioEl.addEventListener('ended', () => {
     applyVowels(currentVrm, null)
+    emit('audio-end')
   })
 }
 
@@ -323,11 +348,11 @@ onBeforeUnmount(() => {
 watch(() => props.modelUrl, (url) => loadVrm(url))
 watch(() => props.audioUrl, (url) => attachAudio(url))
 watch(() => props.emotion, (e) => { if (currentVrm) applyEmotion(currentVrm, e) })
-watch(() => props.motion, (m) => { if (motionCtl) motionCtl.play(m || 'idle') })
+watch(() => props.motion, (m) => { playMotion(m || 'idle') })
 watch(() => props.motions, async (m) => {
   if (!currentVrm) return
   await loadMotions(m)
-  if (motionCtl) motionCtl.play(props.motion || 'idle')
+  playMotion(props.motion || 'idle')
 }, { deep: true })
 </script>
 
@@ -336,7 +361,7 @@ watch(() => props.motions, async (m) => {
   position: relative;
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, #1f2233 0%, #2a2e44 100%);
+  background: transparent;
   overflow: hidden;
 }
 .vrm-stage canvas { display: block; width: 100%; height: 100%; }

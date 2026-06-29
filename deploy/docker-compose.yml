@@ -18,12 +18,14 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pg_data:/var/lib/postgresql/data
-    # 不对外暴露端口：只供 orchestrator 容器通过 Docker 内网访问
+    ports:
+      - "5432:5432"
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    # 不对外暴露端口：只供 orchestrator 容器通过 Docker 内网访问
+    ports:
+      - "6379:6379"
 
   neo4j:
     image: neo4j:5-community
@@ -48,7 +50,7 @@ services:
       - redis
       - neo4j
     ports:
-      - "8000:8000"
+      - "8010:8010"
     volumes:
       - ../orchestrator/data:/app/data
     networks:

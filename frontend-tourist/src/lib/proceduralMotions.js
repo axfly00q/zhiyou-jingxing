@@ -239,6 +239,255 @@ function buildShake(vrm) {
   return makeClip('shake', D, tracks)
 }
 
+/** beckon：右手招呼，2.0s。 */
+function buildBeckon(vrm) {
+  const D = 2.0
+  const tracks = []
+  // 右上臂抬到身前
+  tracks.push(trackForBone(vrm, 'rightUpperArm', [
+    { t: 0,   e: REST.rightUpperArm },
+    { t: 0.4, e: [-0.4, 0.2, -0.5] },
+    { t: 1.6, e: [-0.4, 0.2, -0.5] },
+    { t: D,   e: REST.rightUpperArm },
+  ]))
+  // 右小臂做招手动作（前后摆动）
+  tracks.push(trackForBone(vrm, 'rightLowerArm', [
+    { t: 0,   e: REST.rightLowerArm },
+    { t: 0.4, e: [0, 0.8, -1.0] },
+    { t: 0.7, e: [0, 1.2, -1.0] },
+    { t: 1.0, e: [0, 0.8, -1.0] },
+    { t: 1.3, e: [0, 1.2, -1.0] },
+    { t: 1.6, e: [0, 0.8, -1.0] },
+    { t: D,   e: REST.rightLowerArm },
+  ]))
+  // 头微向右侧偏
+  tracks.push(trackForBone(vrm, 'head', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.4, e: [0.05, -0.1, 0] },
+    { t: 1.6, e: [0.05, -0.1, 0] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  tracks.push(trackForBone(vrm, 'leftUpperArm', [{ t: 0, e: REST.leftUpperArm }, { t: D, e: REST.leftUpperArm }]))
+  tracks.push(trackForBone(vrm, 'leftLowerArm', [{ t: 0, e: REST.leftLowerArm }, { t: D, e: REST.leftLowerArm }]))
+  return makeClip('beckon', D, tracks)
+}
+
+/** bow：鞠躬，2.0s。 */
+function buildBow(vrm) {
+  const D = 2.0
+  const tracks = []
+  // spine 前倾
+  tracks.push(trackForBone(vrm, 'spine', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.5, e: [0.35, 0, 0] },
+    { t: 1.4, e: [0.35, 0, 0] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  // chest 配合前倾
+  tracks.push(trackForBone(vrm, 'chest', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.5, e: [0.15, 0, 0] },
+    { t: 1.4, e: [0.15, 0, 0] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  // 头跟随低下
+  tracks.push(trackForBone(vrm, 'head', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.5, e: [0.2, 0, 0] },
+    { t: 1.4, e: [0.2, 0, 0] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  // 双臂自然下垂
+  tracks.push(trackForBone(vrm, 'leftUpperArm',  [{ t: 0, e: REST.leftUpperArm },  { t: D, e: REST.leftUpperArm }]))
+  tracks.push(trackForBone(vrm, 'rightUpperArm', [{ t: 0, e: REST.rightUpperArm }, { t: D, e: REST.rightUpperArm }]))
+  tracks.push(trackForBone(vrm, 'leftLowerArm',  [{ t: 0, e: REST.leftLowerArm },  { t: D, e: REST.leftLowerArm }]))
+  tracks.push(trackForBone(vrm, 'rightLowerArm', [{ t: 0, e: REST.rightLowerArm }, { t: D, e: REST.rightLowerArm }]))
+  return makeClip('bow', D, tracks)
+}
+
+/** clap：鼓掌 2 次，1.6s。 */
+function buildClap(vrm) {
+  const D = 1.6
+  const tracks = []
+  // 双上臂抬到身前
+  tracks.push(trackForBone(vrm, 'rightUpperArm', [
+    { t: 0,   e: REST.rightUpperArm },
+    { t: 0.2, e: [-0.6, 0.4, -0.5] },
+    { t: 1.3, e: [-0.6, 0.4, -0.5] },
+    { t: D,   e: REST.rightUpperArm },
+  ]))
+  tracks.push(trackForBone(vrm, 'leftUpperArm', [
+    { t: 0,   e: REST.leftUpperArm },
+    { t: 0.2, e: [-0.6, -0.4, 0.5] },
+    { t: 1.3, e: [-0.6, -0.4, 0.5] },
+    { t: D,   e: REST.leftUpperArm },
+  ]))
+  // 小臂做拍手动作（合-开-合-开）
+  tracks.push(trackForBone(vrm, 'rightLowerArm', [
+    { t: 0,   e: REST.rightLowerArm },
+    { t: 0.2, e: [0, 0.8, -1.2] },
+    { t: 0.4, e: [0, 1.2, -1.2] },  // 合
+    { t: 0.55, e: [0, 0.8, -1.2] },  // 开
+    { t: 0.75, e: [0, 1.2, -1.2] },  // 合
+    { t: 0.9, e: [0, 0.8, -1.2] },  // 开
+    { t: 1.3, e: [0, 0.8, -1.2] },
+    { t: D,   e: REST.rightLowerArm },
+  ]))
+  tracks.push(trackForBone(vrm, 'leftLowerArm', [
+    { t: 0,   e: REST.leftLowerArm },
+    { t: 0.2, e: [0, -0.8, 1.2] },
+    { t: 0.4, e: [0, -1.2, 1.2] },
+    { t: 0.55, e: [0, -0.8, 1.2] },
+    { t: 0.75, e: [0, -1.2, 1.2] },
+    { t: 0.9, e: [0, -0.8, 1.2] },
+    { t: 1.3, e: [0, -0.8, 1.2] },
+    { t: D,   e: REST.leftLowerArm },
+  ]))
+  return makeClip('clap', D, tracks)
+}
+
+/** goodbye：告别挥手（比 wave 慢、幅度大），3.0s。 */
+function buildGoodbye(vrm) {
+  const D = 3.0
+  const tracks = []
+  // 右上臂高举
+  tracks.push(trackForBone(vrm, 'rightUpperArm', [
+    { t: 0,   e: REST.rightUpperArm },
+    { t: 0.5, e: [-0.2, -0.3, -0.3] },
+    { t: 2.4, e: [-0.2, -0.3, -0.3] },
+    { t: D,   e: REST.rightUpperArm },
+  ]))
+  // 右小臂缓慢左右摆动
+  tracks.push(trackForBone(vrm, 'rightLowerArm', [
+    { t: 0,   e: REST.rightLowerArm },
+    { t: 0.5, e: [0, 0.3, -1.3] },
+    { t: 1.0, e: [0, 0.9, -1.3] },
+    { t: 1.5, e: [0, 0.3, -1.3] },
+    { t: 2.0, e: [0, 0.9, -1.3] },
+    { t: 2.4, e: [0, 0.3, -1.3] },
+    { t: D,   e: REST.rightLowerArm },
+  ]))
+  // 头微笑着微倾
+  tracks.push(trackForBone(vrm, 'head', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.5, e: [0.05, -0.1, 0.05] },
+    { t: 2.4, e: [0.05, -0.1, 0.05] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  tracks.push(trackForBone(vrm, 'leftUpperArm',  [{ t: 0, e: REST.leftUpperArm },  { t: D, e: REST.leftUpperArm }]))
+  tracks.push(trackForBone(vrm, 'leftLowerArm',  [{ t: 0, e: REST.leftLowerArm },  { t: D, e: REST.leftLowerArm }]))
+  return makeClip('goodbye', D, tracks)
+}
+
+/** listen：侧耳倾听，头微侧 + 身体前倾。2.0s。 */
+function buildListen(vrm) {
+  const D = 2.0
+  const tracks = []
+  // 头向右微侧
+  tracks.push(trackForBone(vrm, 'head', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.5, e: [0.06, 0.12, 0.08] },
+    { t: 1.5, e: [0.06, 0.12, 0.08] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  // 身体微微前倾
+  tracks.push(trackForBone(vrm, 'spine', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.5, e: [0.06, 0, 0] },
+    { t: 1.5, e: [0.06, 0, 0] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  tracks.push(trackForBone(vrm, 'leftUpperArm',  [{ t: 0, e: REST.leftUpperArm },  { t: D, e: REST.leftUpperArm }]))
+  tracks.push(trackForBone(vrm, 'rightUpperArm', [{ t: 0, e: REST.rightUpperArm }, { t: D, e: REST.rightUpperArm }]))
+  tracks.push(trackForBone(vrm, 'leftLowerArm',  [{ t: 0, e: REST.leftLowerArm },  { t: D, e: REST.leftLowerArm }]))
+  tracks.push(trackForBone(vrm, 'rightLowerArm', [{ t: 0, e: REST.rightLowerArm }, { t: D, e: REST.rightLowerArm }]))
+  return makeClip('listen', D, tracks)
+}
+
+/** point：右手伸出指向前方。2.0s。 */
+function buildPoint(vrm) {
+  const D = 2.0
+  const tracks = []
+  // 右上臂抬起指向前方
+  tracks.push(trackForBone(vrm, 'rightUpperArm', [
+    { t: 0,   e: REST.rightUpperArm },
+    { t: 0.4, e: [-0.8, 0.3, -0.3] },
+    { t: 1.6, e: [-0.8, 0.3, -0.3] },
+    { t: D,   e: REST.rightUpperArm },
+  ]))
+  // 右小臂伸直
+  tracks.push(trackForBone(vrm, 'rightLowerArm', [
+    { t: 0,   e: REST.rightLowerArm },
+    { t: 0.4, e: [0, 0.1, -0.1] },
+    { t: 1.6, e: [0, 0.1, -0.1] },
+    { t: D,   e: REST.rightLowerArm },
+  ]))
+  // 头转向指的方向
+  tracks.push(trackForBone(vrm, 'head', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.4, e: [0, -0.2, 0] },
+    { t: 1.6, e: [0, -0.2, 0] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  // 身体微转
+  tracks.push(trackForBone(vrm, 'spine', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.4, e: [0, -0.08, 0] },
+    { t: 1.6, e: [0, -0.08, 0] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  tracks.push(trackForBone(vrm, 'leftUpperArm',  [{ t: 0, e: REST.leftUpperArm },  { t: D, e: REST.leftUpperArm }]))
+  tracks.push(trackForBone(vrm, 'leftLowerArm',  [{ t: 0, e: REST.leftLowerArm },  { t: D, e: REST.leftLowerArm }]))
+  return makeClip('point', D, tracks)
+}
+
+/** shrug：耸肩 + 双手摊开，2.0s。 */
+function buildShrug(vrm) {
+  const D = 2.0
+  const tracks = []
+  // 双上臂微抬 + 外展
+  tracks.push(trackForBone(vrm, 'rightUpperArm', [
+    { t: 0,   e: REST.rightUpperArm },
+    { t: 0.4, e: [-0.3, 0, -0.8] },
+    { t: 1.5, e: [-0.3, 0, -0.8] },
+    { t: D,   e: REST.rightUpperArm },
+  ]))
+  tracks.push(trackForBone(vrm, 'leftUpperArm', [
+    { t: 0,   e: REST.leftUpperArm },
+    { t: 0.4, e: [-0.3, 0, 0.8] },
+    { t: 1.5, e: [-0.3, 0, 0.8] },
+    { t: D,   e: REST.leftUpperArm },
+  ]))
+  // 小臂摊开
+  tracks.push(trackForBone(vrm, 'rightLowerArm', [
+    { t: 0,   e: REST.rightLowerArm },
+    { t: 0.4, e: [0, 0.4, -0.6] },
+    { t: 1.5, e: [0, 0.4, -0.6] },
+    { t: D,   e: REST.rightLowerArm },
+  ]))
+  tracks.push(trackForBone(vrm, 'leftLowerArm', [
+    { t: 0,   e: REST.leftLowerArm },
+    { t: 0.4, e: [0, -0.4, 0.6] },
+    { t: 1.5, e: [0, -0.4, 0.6] },
+    { t: D,   e: REST.leftLowerArm },
+  ]))
+  // 头微歪
+  tracks.push(trackForBone(vrm, 'head', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.4, e: [0, 0, 0.1] },
+    { t: 1.5, e: [0, 0, 0.1] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  // 肩膀上提（用 chest 模拟）
+  tracks.push(trackForBone(vrm, 'chest', [
+    { t: 0,   e: [0, 0, 0] },
+    { t: 0.3, e: [-0.06, 0, 0] },
+    { t: 1.5, e: [-0.06, 0, 0] },
+    { t: D,   e: [0, 0, 0] },
+  ]))
+  return makeClip('shrug', D, tracks)
+}
+
 /** 总入口：返回 { [name]: AnimationClip }，自动过滤空 clip。 */
 export function buildClips(vrm) {
   const all = {
@@ -248,6 +497,13 @@ export function buildClips(vrm) {
     think:   buildThink(vrm),
     nod:     buildNod(vrm),
     shake:   buildShake(vrm),
+    beckon:  buildBeckon(vrm),
+    bow:     buildBow(vrm),
+    clap:    buildClap(vrm),
+    goodbye: buildGoodbye(vrm),
+    listen:  buildListen(vrm),
+    point:   buildPoint(vrm),
+    shrug:   buildShrug(vrm),
   }
   const out = {}
   for (const [k, v] of Object.entries(all)) {

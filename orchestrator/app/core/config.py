@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # App
     app_env: str = "dev"
-    app_port: int = 8000
+    app_port: int = 8010
     secret_key: str = "change-me"
     jwt_secret: str = "change-me"
     admin_username: str = "admin"

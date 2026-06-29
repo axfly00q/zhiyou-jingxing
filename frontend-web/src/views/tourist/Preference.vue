@@ -5,6 +5,8 @@
       <div v-for="n in 20" :key="n" class="dust"></div>
     </div>
 
+    <TopBanner :show-title="false" style="position: absolute; top: 0; left: 0; right: 0; z-index: 100; padding: 32px 5%;" />
+
     <div class="main-content fade-in-up">
       <div class="glass-panel">
         <div class="panel-header">
@@ -102,9 +104,10 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { planRoute } from '../../api.js'
+import TopBanner from '../../components/TopBanner.vue'
 
 const router = useRouter()
 const park = sessionStorage.getItem('park') || 'lingshan'
@@ -192,9 +195,9 @@ onMounted(() => {
 .dust {
   position: absolute;
   width: 3px; height: 3px;
-  background-color: rgba(16, 185, 129, 0.4);
+  background-color: rgba(234, 179, 8, 0.5);
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.8);
   animation: floatUp 15s linear infinite;
 }
 @keyframes floatUp {
@@ -232,7 +235,7 @@ onMounted(() => {
   display: inline-block;
   font-size: 12px;
   letter-spacing: 4px;
-  color: #10b981;
+  color: #eab308;
   margin-bottom: 16px;
   padding-left: 16px;
   position: relative;
@@ -242,7 +245,7 @@ onMounted(() => {
   position: absolute;
   left: 0; top: 50%; transform: translateY(-50%);
   width: 6px; height: 6px;
-  background: #10b981;
+  background: #eab308;
   border-radius: 50%;
 }
 
@@ -285,7 +288,7 @@ onMounted(() => {
   flex: 0 0 30px;
   font-size: 14px;
   text-align: right;
-  color: #10b981;
+  color: #eab308;
   font-variant-numeric: tabular-nums;
 }
 
@@ -312,11 +315,11 @@ onMounted(() => {
 .zen-range::-webkit-slider-thumb {
   height: 16px; width: 16px;
   border-radius: 50%;
-  background: #10b981;
+  background: #eab308;
   cursor: pointer;
   -webkit-appearance: none;
   margin-top: -6px;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.6);
   transition: transform 0.2s;
 }
 .zen-range::-webkit-slider-thumb:hover { transform: scale(1.2); }
@@ -350,12 +353,12 @@ onMounted(() => {
   transition: all 0.3s;
 }
 .zen-checkbox input:checked + .box {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10b981;
+  background: rgba(234, 179, 8, 0.2);
+  border-color: #eab308;
 }
 .zen-checkbox input:checked + .box::after {
   content: '✓';
-  color: #10b981;
+  color: #eab308;
   font-size: 14px;
 }
 .zen-checkbox .text { color: #d1d5db; font-size: 14px; transition: color 0.3s; }
@@ -420,9 +423,9 @@ onMounted(() => {
 .btn-solid-gold:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(1); }
 
 .btn-primary {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.4);
   padding: 16px;
   border-radius: 12px;
   font-size: 16px;
@@ -430,7 +433,7 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.3s;
 }
-.btn-primary:hover { background: rgba(16, 185, 129, 0.25); transform: translateY(-2px); }
+.btn-primary:hover { background: rgba(234, 179, 8, 0.25); transform: translateY(-2px); }
 
 .error-msg { color: #ef4444; margin-top: 12px; font-size: 14px; text-align: center; }
 
@@ -461,7 +464,7 @@ onMounted(() => {
   position: absolute;
   left: 0; top: 0; bottom: 0;
   width: 2px;
-  background: linear-gradient(to bottom, #10b981, rgba(16, 185, 129, 0.1));
+  background: linear-gradient(to bottom, #eab308, rgba(234, 179, 8, 0.1));
 }
 
 .timeline-item {
@@ -473,9 +476,9 @@ onMounted(() => {
   left: -29px;
   top: 4px;
   width: 12px; height: 12px;
-  background: #10b981;
+  background: #eab308;
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.8);
 }
 
 .spot-header {

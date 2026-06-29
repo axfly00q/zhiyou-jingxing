@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+</marker>
+<filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+<feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+</filter>
+</defs>
+<rect width="1600" height="900" fill="#f8fafc"/>
+<text x="60" y="58" font-family="Microsoft YaHei, Arial, sans-serif" font-size="34" font-weight="800" fill="#0f172a" text-anchor="start">图 3  景区知识库 RAG 问答链路</text>
+<text x="60" y="95" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#64748b" text-anchor="start">用可追溯资料增强大模型回答，降低事实性错误</text>
+<circle cx="90" cy="153" r="18" fill="#2563eb" stroke="#fff" stroke-width="3"/>
+<text x="90" y="159" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+<text x="120" y="160" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#2563eb" text-anchor="start">知识构建</text>
+<rect x="70" y="195" width="320" height="160" rx="14" ry="14" fill="#dbeafe" stroke="#93c5fd" stroke-width="2" filter="url(#shadow)"/>
+<text x="92" y="229" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#2563eb" text-anchor="start">景区资料</text>
+<text x="98" y="263" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 灵山知识库</text>
+<text x="98" y="292" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• FAQ</text>
+<text x="98" y="321" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 后台上传文档</text>
+<rect x="70" y="420" width="320" height="160" rx="14" ry="14" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2" filter="url(#shadow)"/>
+<text x="92" y="454" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#2563eb" text-anchor="start">切分与索引</text>
+<text x="98" y="488" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• Chunking</text>
+<text x="98" y="517" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• Embedding</text>
+<text x="98" y="546" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 向量检索索引</text>
+<circle cx="505" cy="153" r="18" fill="#7c3aed" stroke="#fff" stroke-width="3"/>
+<text x="505" y="159" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+<text x="535" y="160" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#7c3aed" text-anchor="start">问题理解</text>
+<rect x="475" y="260" width="310" height="215" rx="14" ry="14" fill="#ede9fe" stroke="#c4b5fd" stroke-width="2" filter="url(#shadow)"/>
+<text x="497" y="294" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#7c3aed" text-anchor="start">游客问题</text>
+<text x="503" y="328" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 文本输入</text>
+<text x="503" y="357" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 语音 ASR 结果</text>
+<text x="503" y="386" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 上下文会话</text>
+<circle cx="900" cy="153" r="18" fill="#16a34a" stroke="#fff" stroke-width="3"/>
+<text x="900" y="159" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+<text x="930" y="160" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#16a34a" text-anchor="start">检索增强</text>
+<rect x="870" y="210" width="330" height="170" rx="14" ry="14" fill="#dcfce7" stroke="#86efac" stroke-width="2" filter="url(#shadow)"/>
+<text x="892" y="244" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#16a34a" text-anchor="start">Top-K 相关片段</text>
+<text x="898" y="278" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 按语义相似度召回</text>
+<text x="898" y="307" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 保留来源 citation</text>
+<text x="898" y="336" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 过滤低置信内容</text>
+<rect x="885" y="430" width="300" height="95" rx="14" ry="14" fill="#ffffff" stroke="#86efac" stroke-width="2"/>
+<text x="1035" y="470" font-family="Microsoft YaHei, Arial, sans-serif" font-size="19" font-weight="800" fill="#16a34a" text-anchor="middle">score(q,d)=sim(q,d)+rule(d)</text>
+<text x="1035" y="500" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="500" fill="#334155" text-anchor="middle">检索结果作为 LLM 上下文</text>
+<circle cx="1305" cy="153" r="18" fill="#ea580c" stroke="#fff" stroke-width="3"/>
+<text x="1305" y="159" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">4</text>
+<text x="1335" y="160" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#ea580c" text-anchor="start">生成回答</text>
+<rect x="1260" y="260" width="300" height="215" rx="14" ry="14" fill="#ffedd5" stroke="#fdba74" stroke-width="2" filter="url(#shadow)"/>
+<text x="1282" y="294" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#ea580c" text-anchor="start">Dify / LLM</text>
+<text x="1288" y="328" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 自然语言回答</text>
+<text x="1288" y="357" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 引用来源</text>
+<text x="1288" y="386" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 无法确认时兜底</text>
+<rect x="1260" y="570" width="300" height="120" rx="14" ry="14" fill="#fff7ed" stroke="#fed7aa" stroke-width="2" filter="url(#shadow)"/>
+<text x="1282" y="604" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#ea580c" text-anchor="start">输出给数字人</text>
+<text x="1288" y="638" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 文本展示 + TTS 播报</text>
+<text x="1288" y="667" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 表情/动作标签</text>
+<line x1="230" y1="360" x2="230" y2="410" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="400" y1="500" x2="465" y2="370" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="795" y1="370" x2="860" y2="300" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="1210" y1="300" x2="1250" y2="355" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="1410" y1="485" x2="1410" y2="560" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M 1410 705 C 1070 800, 390 760, 230 590" fill="none" stroke="#64748b" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)" stroke-dasharray="8 8"/>
+<text x="795" y="805" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="700" fill="#64748b" text-anchor="middle">后台知识更新可持续提升回答质量</text>
+</svg>

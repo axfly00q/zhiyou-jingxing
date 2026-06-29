@@ -65,6 +65,9 @@ orchestrator/data/tts_cache/
 
 # 测试输出文件
 orchestrator/test_out*.txt
+test_out*.txt
+test_payload.json
+test_dify.txt
 
 # 原始资料包（含大型二进制文件，不纳入版本控制）
 20260323113204906/

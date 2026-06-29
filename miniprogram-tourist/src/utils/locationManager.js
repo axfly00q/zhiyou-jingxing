@@ -9,6 +9,8 @@ class LocationManager {
     this.currentLocation = null;
     this.callbacks = [];
     this.beaconActive = false;
+    this._handleLocationChange = null;
+    this._boundBeaconUpdate = this._handleBeaconUpdate.bind(this);
 
     // 假设这是已知信标对应的经纬度映射表
     this.beaconMap = {
@@ -23,12 +25,21 @@ class LocationManager {
   // 暴露给页面的监听方法
   onLocationUpdate(callback) {
     this.callbacks.push(callback);
+    return () => {
+      this.callbacks = this.callbacks.filter(cb => cb !== callback);
+    };
   }
 
   // 内部触发更新
   _triggerUpdate(locationData) {
     this.currentLocation = locationData;
-    this.callbacks.forEach(cb => cb(locationData));
+    this.callbacks.forEach(cb => {
+      try {
+        cb(locationData);
+      } catch (err) {
+        console.error('location callback fail', err);
+      }
+    });
   }
 
   start() {
@@ -71,6 +82,9 @@ class LocationManager {
   }
 
   listenGPS() {
+    if (this._handleLocationChange) {
+      uni.offLocationChange(this._handleLocationChange);
+    }
     this._handleLocationChange = (res) => {
       // res: { latitude, longitude, accuracy, speed, etc. }
       
@@ -118,7 +132,7 @@ class LocationManager {
           uuids: ['FDA50693-A4E2-4FB1-AFCF-C6EB07647825'], // 景区的 UUID
           success: () => {
             this.beaconActive = true;
-            uni.onBeaconUpdate(this._handleBeaconUpdate.bind(this));
+            uni.onBeaconUpdate(this._boundBeaconUpdate);
           },
           fail: (err) => {
             console.error('信标扫描启动失败', err);
@@ -135,6 +149,9 @@ class LocationManager {
 
   _stopBeacon() {
     if (!this.beaconActive) return;
+    if (typeof uni.offBeaconUpdate === 'function') {
+      uni.offBeaconUpdate(this._boundBeaconUpdate);
+    }
     uni.stopBeaconDiscovery();
     uni.closeBluetoothAdapter();
     this.beaconActive = false;

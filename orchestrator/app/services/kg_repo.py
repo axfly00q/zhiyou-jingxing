@@ -7,7 +7,7 @@
 JSON 结构（也是 Neo4j 节点属性的镜像）：
 {
   "park": "zhuozhengyuan",
-  "park_name": "拙政园",
+  "park_name": "灵山胜境",
   "spots": [
     {
       "code": "yuanxiang_tang",

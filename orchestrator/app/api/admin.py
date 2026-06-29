@@ -15,7 +15,7 @@ from app.core.database import get_db
 from app.core.logger import logger
 from app.core.security import create_access_token, verify_admin
 from app.models import Avatar, Suggestion
-from app.schemas import AvatarIn, AvatarOut, LoginRequest, SuggestionOut, SuggestionStatusUpdate, TokenResponse
+from app.schemas import AvatarIn, AvatarOut, AvatarUpdate, LoginRequest, SuggestionOut, SuggestionStatusUpdate, TokenResponse
 from app.services.dify_client import dify_client
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -77,6 +77,18 @@ async def delete_avatar(avatar_id: int, db: AsyncSession = Depends(get_db)):
     await db.delete(obj)
     await db.commit()
     return {"ok": True}
+
+
+@router.patch("/avatars/{avatar_id}", response_model=AvatarOut, dependencies=[Depends(verify_admin)])
+async def update_avatar(avatar_id: int, payload: AvatarUpdate, db: AsyncSession = Depends(get_db)):
+    obj = await db.get(Avatar, avatar_id)
+    if not obj:
+        raise HTTPException(404, "not found")
+    if payload.description is not None:
+        obj.description = payload.description
+    await db.commit()
+    await db.refresh(obj)
+    return obj
 
 
 @router.post("/avatars/{code}/upload-vrm", dependencies=[Depends(verify_admin)])

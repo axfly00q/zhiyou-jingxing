@@ -65,10 +65,11 @@ const remainingMinutes = computed(() =>
 
 <style scoped>
 .route-bar {
-  background: #1a1f35;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
   z-index: 10;
   flex-shrink: 0;
+  backdrop-filter: blur(8px);
 }
 
 .route-bar__header {
@@ -121,9 +122,9 @@ const remainingMinutes = computed(() =>
   background: rgba(255,255,255,0.03);
 }
 .route-bar__spot.is-current {
-  border-color: #4d9fff;
-  background: rgba(77,159,255,0.18);
-  box-shadow: 0 0 8px rgba(77,159,255,0.35);
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.18);
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.35);
 }
 .route-bar__spot.is-future {
   opacity: 0.75;
@@ -138,8 +139,8 @@ const remainingMinutes = computed(() =>
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.is-current .spot-index { background: #4d9fff; }
-.is-done .spot-index { background: #52c41a; }
+.is-current .spot-index { background: #eab308; color: #000; font-weight: 600; }
+.is-done .spot-index { background: rgba(234, 179, 8, 0.4); }
 
 .spot-info { flex: 1; min-width: 0; }
 .spot-name {
@@ -154,7 +155,7 @@ const remainingMinutes = computed(() =>
 
 .checkin-btn {
   flex-shrink: 0;
-  background: #2c7be5;
+  background: #ca8a04;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -163,7 +164,7 @@ const remainingMinutes = computed(() =>
   cursor: pointer;
   white-space: nowrap;
 }
-.checkin-btn:active { background: #1a60c8; }
+.checkin-btn:active { background: #a16207; }
 
 /* 折叠动画 */
 .slide-enter-active,

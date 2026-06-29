@@ -111,7 +111,7 @@ async def spot_heatmap(db: AsyncSession = Depends(get_db)):
     """
     from app.services.kg_repo import load_park
     counts: dict[str, dict] = {}
-    for park_code in ("zhuozhengyuan", "liuyuan"):
+    for park_code in ("lingshan",):
         graph = load_park(park_code)
         if not graph:
             continue

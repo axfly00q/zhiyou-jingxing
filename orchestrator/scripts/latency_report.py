@@ -11,9 +11,9 @@
   - 输出彩色控制台报告 + JSON 文件（docs/latency_report.json）
 
 用法（先启动 orchestrator 再跑）：
-    uvicorn app.main:app --port 8000 &
+    uvicorn app.main:app --port 8010 &
     python -m scripts.latency_report
-    python -m scripts.latency_report --base-url http://127.0.0.1:8000 --rounds 30
+    python -m scripts.latency_report --base-url http://127.0.0.1:8010 --rounds 30
     python -m scripts.latency_report --stub   # 不需要真实服务，用桩模式演示报告格式
 """
 from __future__ import annotations
@@ -148,7 +148,7 @@ def _make_endpoints(base: str) -> list:
         "倒影楼在哪个区域",
         "兰雪堂是谁建的",
         "芙蓉榭最美的季节是什么",
-        "拙政园什么时候建造的",
+        "灵山大佛什么时候建造的",
     ]
 
     return [
@@ -159,7 +159,7 @@ def _make_endpoints(base: str) -> list:
             "body_fn": lambda i: {
                 "session_id": f"{_SESSION}_{i}",
                 "message": _SPOT_QUESTIONS[i % len(_SPOT_QUESTIONS)],
-                "park_code": "zhuozhengyuan",
+                "park_code": "lingshan",
             },
             "target_ms": 3000,
             "note": "含 Dify RAG + TTS，首字延迟目标 ≤ 3s",
@@ -167,7 +167,7 @@ def _make_endpoints(base: str) -> list:
         {
             "name": "route/plan（路线规划）",
             "method": "POST",
-            "path": "/api/route/zhuozhengyuan/plan",
+            "path": "/api/route/lingshan/plan",
             "body_fn": lambda i: {
                 "history": round(random.uniform(0.3, 1.0), 1),
                 "nature": round(random.uniform(0.3, 1.0), 1),
@@ -189,6 +189,7 @@ def _make_endpoints(base: str) -> list:
         },
         {
             "name": "route/graph（KG 图结构）",
+            "method": "GET",
             "path": "/api/route/lingshan/graph",
             "body_fn": lambda i: None,
             "target_ms": 300,
@@ -403,8 +404,8 @@ def build_json_report(reports: List[EndpointReport], mode: str) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="智游景行 延迟与稳定性测试")
-    parser.add_argument("--base-url", default="http://127.0.0.1:8000",
-                        help="Orchestrator 服务地址（默认 http://127.0.0.1:8000）")
+    parser.add_argument("--base-url", default="http://127.0.0.1:8010",
+                        help="Orchestrator 服务地址（默认 http://127.0.0.1:8010）")
     parser.add_argument("--rounds", type=int, default=20,
                         help="每端点测试轮次（默认 20）")
     parser.add_argument("--timeout", type=float, default=15.0,

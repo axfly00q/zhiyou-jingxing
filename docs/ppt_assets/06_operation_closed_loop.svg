@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+</marker>
+<filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+<feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+</filter>
+</defs>
+<rect width="1600" height="900" fill="#f8fafc"/>
+<text x="60" y="58" font-family="Microsoft YaHei, Arial, sans-serif" font-size="34" font-weight="800" fill="#0f172a" text-anchor="start">图 6  游客反馈到景区运营的闭环</text>
+<text x="60" y="95" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#64748b" text-anchor="start">把前端对话数据转化为后台可执行的服务优化建议</text>
+<rect x="135" y="172" width="330" height="156" rx="18" ry="18" fill="#dbeafe" stroke="#2563eb" stroke-width="3" filter="url(#shadow)"/>
+<text x="300" y="228" font-family="Microsoft YaHei, Arial, sans-serif" font-size="25" font-weight="800" fill="#2563eb" text-anchor="middle">游客交互</text>
+<text x="300" y="274" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="600" fill="#334155" text-anchor="middle">问答 / 评价 / 抱怨</text>
+<rect x="595" y="172" width="330" height="156" rx="18" ry="18" fill="#ede9fe" stroke="#7c3aed" stroke-width="3" filter="url(#shadow)"/>
+<text x="760" y="228" font-family="Microsoft YaHei, Arial, sans-serif" font-size="25" font-weight="800" fill="#7c3aed" text-anchor="middle">情感分析</text>
+<text x="760" y="274" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="600" fill="#334155" text-anchor="middle">满意度、负面率、问题标签</text>
+<rect x="1055" y="172" width="330" height="156" rx="18" ry="18" fill="#ffedd5" stroke="#ea580c" stroke-width="3" filter="url(#shadow)"/>
+<text x="1220" y="228" font-family="Microsoft YaHei, Arial, sans-serif" font-size="25" font-weight="800" fill="#ea580c" text-anchor="middle">服务建议</text>
+<text x="1220" y="274" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="600" fill="#334155" text-anchor="middle">排队、讲解、设施、路线优化</text>
+<rect x="1055" y="532" width="330" height="156" rx="18" ry="18" fill="#dcfce7" stroke="#16a34a" stroke-width="3" filter="url(#shadow)"/>
+<text x="1220" y="588" font-family="Microsoft YaHei, Arial, sans-serif" font-size="25" font-weight="800" fill="#16a34a" text-anchor="middle">管理决策</text>
+<text x="1220" y="634" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="600" fill="#334155" text-anchor="middle">知识库更新、运营调整</text>
+<rect x="595" y="532" width="330" height="156" rx="18" ry="18" fill="#ccfbf1" stroke="#0f766e" stroke-width="3" filter="url(#shadow)"/>
+<text x="760" y="588" font-family="Microsoft YaHei, Arial, sans-serif" font-size="25" font-weight="800" fill="#0f766e" text-anchor="middle">数据大屏</text>
+<text x="760" y="634" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="600" fill="#334155" text-anchor="middle">热度、趋势、Top 问题</text>
+<rect x="135" y="532" width="330" height="156" rx="18" ry="18" fill="#e2e8f0" stroke="#475569" stroke-width="3" filter="url(#shadow)"/>
+<text x="300" y="588" font-family="Microsoft YaHei, Arial, sans-serif" font-size="25" font-weight="800" fill="#475569" text-anchor="middle">体验提升</text>
+<text x="300" y="634" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="600" fill="#334155" text-anchor="middle">回答更准、路线更合适</text>
+<line x1="465" y1="250" x2="590" y2="250" stroke="#334155" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="925" y1="250" x2="1050" y2="250" stroke="#334155" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="1220" y1="328" x2="1220" y2="522" stroke="#334155" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="1050" y1="610" x2="925" y2="610" stroke="#334155" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="590" y1="610" x2="465" y2="610" stroke="#334155" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="300" y1="532" x2="300" y2="328" stroke="#334155" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="760" y="115" font-family="Microsoft YaHei, Arial, sans-serif" font-size="30" font-weight="800" fill="#0f172a" text-anchor="middle">运营闭环 = 采集 → 分析 → 建议 → 调整 → 体验提升</text>
+<rect x="245" y="765" width="1030" height="64" rx="15" ry="15" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="760" y="806" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="700" fill="#334155" text-anchor="middle">这一页用来证明项目具备真实景区价值：不仅服务游客，还帮助管理方发现问题和优化资源。</text>
+</svg>

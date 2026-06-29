@@ -23,7 +23,12 @@
             <span v-if="a.model_url" style="color:#28a745">已上传</span>
             <span v-else style="color:#dc3545">未上传</span>
           </td>
-          <td>{{ a.description }}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span>{{ a.description }}</span>
+              <button class="btn" style="padding:2px 6px;font-size:12px;background:transparent;border:1px solid #666;color:#ccc" @click="editDesc(a)">✎</button>
+            </div>
+          </td>
           <td>
             <input :ref="el => fileRefs[a.code] = el" type="file" accept=".vrm"
                    style="display:none" @change="onPickVrm($event, a)" />
@@ -105,6 +110,18 @@ async function del(a) {
   if (!confirm(`删除「${a.name}」？`)) return
   await api.delete(`/admin/avatars/${a.id}`)
   load()
+}
+
+async function editDesc(a) {
+  const newDesc = prompt('请输入新的描述：', a.description || '')
+  if (newDesc !== null && newDesc !== a.description) {
+    try {
+      await api.patch(`/admin/avatars/${a.id}`, { description: newDesc })
+      load()
+    } catch (e) {
+      alert('更新失败：' + (e.response?.data?.detail || e.message))
+    }
+  }
 }
 
 function pickVrm(a) {

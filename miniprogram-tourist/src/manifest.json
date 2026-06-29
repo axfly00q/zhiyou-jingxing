@@ -24,6 +24,9 @@
       },
       "scope.userLocationBackground": {
         "desc": "在后台运行时持续为您提供导航播报服务"
+      },
+      "scope.writePhotosAlbum": {
+        "desc": "保存游览纪念卡到您的相册，留下美好回忆"
       }
     }
   }

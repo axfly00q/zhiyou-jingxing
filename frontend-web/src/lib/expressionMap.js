@@ -103,7 +103,7 @@ export class MotionController {
     if (!clip) return
     const next = this.mixer.clipAction(clip)
     next.reset()
-    next.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, Infinity)
+    next.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, loop ? Infinity : 1)
     next.clampWhenFinished = !loop
     next.enabled = true
     next.fadeIn(fade).play()

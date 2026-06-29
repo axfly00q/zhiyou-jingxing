@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+</marker>
+<filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+<feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+</filter>
+</defs>
+<rect width="1600" height="900" fill="#f8fafc"/>
+<text x="60" y="58" font-family="Microsoft YaHei, Arial, sans-serif" font-size="34" font-weight="800" fill="#0f172a" text-anchor="start">图 1  智游景行总体技术架构</text>
+<text x="60" y="95" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#64748b" text-anchor="start">三端协同 + Orchestrator 编排 + RAG/KG/数字人能力融合</text>
+<circle cx="78" cy="143" r="18" fill="#2563eb" stroke="#fff" stroke-width="3"/>
+<text x="78" y="149" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+<text x="108" y="150" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#2563eb" text-anchor="start">用户交互层</text>
+<rect x="60" y="180" width="315" height="185" rx="14" ry="14" fill="#dbeafe" stroke="#93c5fd" stroke-width="2" filter="url(#shadow)"/>
+<text x="82" y="214" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#2563eb" text-anchor="start">游客端 / 小程序 / Web</text>
+<text x="88" y="248" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 文本问答</text>
+<text x="88" y="277" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 语音提问与播报</text>
+<text x="88" y="306" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 路线偏好与打卡</text>
+<text x="88" y="335" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 数字人导览</text>
+<rect x="60" y="410" width="315" height="150" rx="14" ry="14" fill="#eff6ff" stroke="#bfdbfe" stroke-width="2" filter="url(#shadow)"/>
+<text x="82" y="444" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#2563eb" text-anchor="start">展示组件</text>
+<text x="88" y="478" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• VRM 数字人</text>
+<text x="88" y="507" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 景区地图</text>
+<text x="88" y="536" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 路线卡片</text>
+<text x="88" y="565" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 分享卡片</text>
+<circle cx="500" cy="143" r="18" fill="#7c3aed" stroke="#fff" stroke-width="3"/>
+<text x="500" y="149" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+<text x="530" y="150" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#7c3aed" text-anchor="start">智能编排层</text>
+<rect x="455" y="205" width="330" height="270" rx="14" ry="14" fill="#ede9fe" stroke="#c4b5fd" stroke-width="2" filter="url(#shadow)"/>
+<text x="477" y="239" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#7c3aed" text-anchor="start">Orchestrator API</text>
+<text x="483" y="273" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• Chat / Voice</text>
+<text x="483" y="302" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• Route / Graph</text>
+<text x="483" y="331" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• Analytics</text>
+<text x="483" y="360" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• Admin</text>
+<text x="483" y="389" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• Security</text>
+<rect x="525" y="500" width="110" height="42" rx="21" ry="21" fill="#f5f3ff" stroke="#f5f3ff" stroke-width="1"/>
+<text x="580.0" y="527" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="700" fill="#7c3aed" text-anchor="middle">会话管理</text>
+<rect x="650" y="500" width="110" height="42" rx="21" ry="21" fill="#f5f3ff" stroke="#f5f3ff" stroke-width="1"/>
+<text x="705.0" y="527" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="700" fill="#7c3aed" text-anchor="middle">降级兜底</text>
+<circle cx="915" cy="143" r="18" fill="#16a34a" stroke="#fff" stroke-width="3"/>
+<text x="915" y="149" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+<text x="945" y="150" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#16a34a" text-anchor="start">AI 与知识层</text>
+<rect x="875" y="180" width="315" height="145" rx="14" ry="14" fill="#dcfce7" stroke="#86efac" stroke-width="2" filter="url(#shadow)"/>
+<text x="897" y="214" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#16a34a" text-anchor="start">Dify / LLM / RAG</text>
+<text x="903" y="248" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 景区知识问答</text>
+<text x="903" y="277" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 引用来源 citations</text>
+<text x="903" y="306" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 减少幻觉</text>
+<rect x="875" y="370" width="315" height="145" rx="14" ry="14" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="2" filter="url(#shadow)"/>
+<text x="897" y="404" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#16a34a" text-anchor="start">知识库 + 知识图谱</text>
+<text x="903" y="438" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 灵山景区资料</text>
+<text x="903" y="467" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• Neo4j / JSON 兜底</text>
+<text x="903" y="496" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 个性化路线规划</text>
+<rect x="875" y="560" width="315" height="115" rx="14" ry="14" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="2" filter="url(#shadow)"/>
+<text x="897" y="594" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#16a34a" text-anchor="start">ASR / TTS / VRM</text>
+<text x="903" y="628" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 语音识别、语音合成</text>
+<text x="903" y="657" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 表情动作与口型同步</text>
+<circle cx="1305" cy="143" r="18" fill="#ea580c" stroke="#fff" stroke-width="3"/>
+<text x="1305" y="149" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">4</text>
+<text x="1335" y="150" font-family="Microsoft YaHei, Arial, sans-serif" font-size="23" font-weight="800" fill="#ea580c" text-anchor="start">运营管理层</text>
+<rect x="1250" y="205" width="300" height="195" rx="14" ry="14" fill="#ffedd5" stroke="#fdba74" stroke-width="2" filter="url(#shadow)"/>
+<text x="1272" y="239" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#ea580c" text-anchor="start">管理后台</text>
+<text x="1278" y="273" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 知识库维护</text>
+<text x="1278" y="302" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 数字人形象管理</text>
+<text x="1278" y="331" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 服务建议审核</text>
+<rect x="1250" y="450" width="300" height="170" rx="14" ry="14" fill="#fff7ed" stroke="#fed7aa" stroke-width="2" filter="url(#shadow)"/>
+<text x="1272" y="484" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#ea580c" text-anchor="start">数据大屏</text>
+<text x="1278" y="518" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 服务人次</text>
+<text x="1278" y="547" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 热门问答</text>
+<text x="1278" y="576" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 景点热度</text>
+<text x="1278" y="605" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">• 满意度趋势</text>
+<line x1="385" y1="290" x2="445" y2="290" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="795" y1="290" x2="865" y2="250" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="795" y1="350" x2="865" y2="435" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="1198" y1="445" x2="1240" y2="315" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="1198" y1="445" x2="1240" y2="535" stroke="#334155" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M 1400 635 C 1270 775, 455 760, 220 575" fill="none" stroke="#64748b" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)" stroke-dasharray="8 8"/>
+<text x="785" y="805" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#64748b" text-anchor="middle">反馈数据反哺知识库、路线策略与运营决策</text>
+</svg>

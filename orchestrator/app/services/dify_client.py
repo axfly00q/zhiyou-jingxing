@@ -38,7 +38,7 @@ class DifyClient:
         try:
             answer = await llm_client.chat([
                 {"role": "system",
-                 "content": "你是苏州园林智慧导游助手，熟悉拙政园、留园等苏州经典园林的历史、文化和景点。请用简洁友好的中文回答游客问题。"},
+                 "content": "你是灵山胜境智慧导游助手，熟悉灵山大佛、梵宫等景区的历史、文化和景点。请用简洁友好的中文回答游客问题。"},
                 {"role": "user", "content": query},
             ], temperature=0.5, max_tokens=512)
         except Exception as e:
@@ -139,7 +139,17 @@ class DifyClient:
                         if not _cid_fired and on_conversation_id and evt.get("conversation_id"):
                             on_conversation_id(evt["conversation_id"])
                             _cid_fired = True
-                        if evt.get("event") not in ("message", "agent_message"):
+                        event_type = evt.get("event")
+                        if event_type == "error":
+                            yield f"（大模型服务异常：{evt.get('message', '未知')}）"
+                            break
+                        if event_type == "workflow_finished":
+                            data = evt.get("data", {})
+                            if data.get("status") == "failed":
+                                yield f"（大模型服务调用失败，请稍后重试。原因：{data.get('error', '未知')}）"
+                                break
+                            continue
+                        if event_type not in ("message", "agent_message"):
                             continue
                         token = evt.get("answer", "")
                         buf += token
@@ -148,7 +158,7 @@ class DifyClient:
                             if in_think:
                                 end = buf.find("</think>")
                                 if end == -1:
-                                    buf = ""  # 丢弃思考中内容，保留末尾防截断
+                                    buf = buf[-7:] if len(buf) > 7 else buf  # 丢弃思考中内容，保留末尾防截断
                                     break
                                 buf = buf[end + 8:]
                                 in_think = False
@@ -165,8 +175,9 @@ class DifyClient:
                             # 保留末尾 7 字节防止 <think> 被截断在边界
                             yield buf[:-7]
                             buf = buf[-7:]
-                    if buf and not in_think:
-                        yield buf
+
+                if buf and not in_think:
+                    yield buf
         except httpx.HTTPError as exc:
             logger.exception("Dify 流式网络错误：{}", exc)
             yield "（网络不稳定，请稍后重试）"

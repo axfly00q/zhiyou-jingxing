@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+</marker>
+<filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+<feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+</filter>
+</defs>
+<rect width="1600" height="900" fill="#f8fafc"/>
+<text x="60" y="58" font-family="Microsoft YaHei, Arial, sans-serif" font-size="34" font-weight="800" fill="#0f172a" text-anchor="start">图 2  游客侧导览服务流程</text>
+<text x="60" y="95" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#64748b" text-anchor="start">从游前偏好到游中讲解，再到游后反馈的完整体验链路</text>
+<circle cx="108" cy="190" r="22" fill="#2563eb" stroke="#fff" stroke-width="3"/>
+<text x="108" y="198" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+<rect x="80" y="235" width="245" height="210" rx="14" ry="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
+<text x="102" y="269" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#2563eb" text-anchor="start">偏好采集</text>
+<text x="102" y="305" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">兴趣、时长、亲子、无障碍、赶时间</text>
+<line x1="335" y1="340" x2="368" y2="340" stroke="#334155" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<circle cx="408" cy="190" r="22" fill="#16a34a" stroke="#fff" stroke-width="3"/>
+<text x="408" y="198" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+<rect x="380" y="235" width="245" height="210" rx="14" ry="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2" filter="url(#shadow)"/>
+<text x="402" y="269" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#16a34a" text-anchor="start">路线生成</text>
+<text x="402" y="305" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">KG</text>
+<text x="402" y="332" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">规划景点顺序，生成讲解开场白</text>
+<line x1="635" y1="340" x2="668" y2="340" stroke="#334155" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<circle cx="708" cy="190" r="22" fill="#7c3aed" stroke="#fff" stroke-width="3"/>
+<text x="708" y="198" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+<rect x="680" y="235" width="245" height="210" rx="14" ry="14" fill="#ede9fe" stroke="#7c3aed" stroke-width="2" filter="url(#shadow)"/>
+<text x="702" y="269" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#7c3aed" text-anchor="start">数字人问答</text>
+<text x="702" y="305" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">文本/语音输入，RAG</text>
+<text x="702" y="332" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">返回景区知识</text>
+<line x1="935" y1="340" x2="968" y2="340" stroke="#334155" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<circle cx="1008" cy="190" r="22" fill="#ea580c" stroke="#fff" stroke-width="3"/>
+<text x="1008" y="198" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="800" fill="#fff" text-anchor="middle">4</text>
+<rect x="980" y="235" width="245" height="210" rx="14" ry="14" fill="#ffedd5" stroke="#ea580c" stroke-width="2" filter="url(#shadow)"/>
+<text x="1002" y="269" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#ea580c" text-anchor="start">途中交互</text>
+<text x="1002" y="305" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">打卡、下一站提示、跳过/重规划</text>
+<line x1="1235" y1="340" x2="1268" y2="340" stroke="#334155" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<circle cx="1308" cy="190" r="22" fill="#0f766e" stroke="#fff" stroke-width="3"/>
+<text x="1308" y="198" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="800" fill="#fff" text-anchor="middle">5</text>
+<rect x="1280" y="235" width="245" height="210" rx="14" ry="14" fill="#ccfbf1" stroke="#0f766e" stroke-width="2" filter="url(#shadow)"/>
+<text x="1302" y="269" font-family="Microsoft YaHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#0f766e" text-anchor="start">反馈沉淀</text>
+<text x="1302" y="305" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" font-weight="500" fill="#334155" text-anchor="start">满意度、情绪标签、服务建议</text>
+<rect x="110" y="560" width="1380" height="165" rx="18" ry="18" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" filter="url(#shadow)"/>
+<text x="145" y="610" font-family="Microsoft YaHei, Arial, sans-serif" font-size="25" font-weight="800" fill="#0f172a" text-anchor="start">答辩表述重点</text>
+<text x="145" y="655" font-family="Microsoft YaHei, Arial, sans-serif" font-size="22" font-weight="600" fill="#334155" text-anchor="start">这条流程说明项目不是“聊天 Demo”，而是围绕游客真实游览行为设计的闭环产品。</text>
+<text x="145" y="695" font-family="Microsoft YaHei, Arial, sans-serif" font-size="22" font-weight="600" fill="#334155" text-anchor="start">老师看到的是：能推荐、能讲解、能互动、能记录、能分析，具备落地到景区服务的完整性。</text>
+</svg>

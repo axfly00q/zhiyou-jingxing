@@ -50,6 +50,11 @@ _TTS_CACHE_DIR = _DATA_ROOT / "tts_cache"
 _TTS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static/tts", StaticFiles(directory=str(_TTS_CACHE_DIR)), name="tts")
 
+# 小程序数字人 MP4：微信 video 组件对包内本地 mp4 支持不稳定，走本机 HTTP 更可靠。
+_AVATAR_VIDEOS_DIR = _DATA_ROOT / "avatar_videos"
+_AVATAR_VIDEOS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/static/avatar-videos", StaticFiles(directory=str(_AVATAR_VIDEOS_DIR)), name="avatar-videos")
+
 
 @app.get("/health")
 async def health():

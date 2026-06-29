@@ -5,17 +5,19 @@
       <div v-for="n in 20" :key="n" class="dust"></div>
     </div>
 
+    <TopBanner :show-title="false" style="position: absolute; top: 0; left: 0; right: 0; z-index: 100; padding: 32px 5%;" />
+
     <div class="hero glass-panel fade-in-up">
       <div class="oriental-badge">DESTINATION</div>
       <h1 class="serif-font">选择您的朝圣之旅</h1>
       <p class="subtitle">让专属 AI 数字人陪您游遍大江南北的绝美胜境</p>
-      
+
       <p v-if="loadError" style="color:#f87171;font-size:12px;margin-bottom:8px;">API 异常（已用本地数据）：{{ loadError }}</p>
       <div class="park-row">
         <div v-for="p in parks" :key="p.code" class="park-card" @click="select(p)">
           <div class="card-content">
             <h3 class="serif-font">{{ p.name }}</h3>
-            <p>{{ p.code === 'lingshan' ? '东方佛国 · 太湖明珠' : '江南第一厅堂 · 三大名石之冠' }}</p>
+            <p>{{ p.code === 'lingshan' ? '东方佛国 · 太湖明珠' : '中国四大名园 · 咫尺之内再造乾坤' }}</p>
           </div>
           <div class="glow-border"></div>
         </div>
@@ -28,17 +30,17 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { listParks } from '../../api.js'
+import TopBanner from '../../components/TopBanner.vue'
 
 const FALLBACK_PARKS = [
   { code: 'lingshan', name: '灵山胜境' },
-  { code: 'liuyuan',  name: '留园' },
 ]
 
 const router = useRouter()
 const parks = ref([])
 const loadError = ref('')
 
-onMounted(async () => { 
+onMounted(async () => {
   // Add some random initial positions to dusts
   const dusts = document.querySelectorAll('.dust')
   dusts.forEach(dust => {
@@ -47,7 +49,7 @@ onMounted(async () => {
     dust.style.animationDuration = (Math.random() * 20 + 10) + 's'
     dust.style.animationDelay = (Math.random() * -20) + 's'
   })
-  
+
   try {
     parks.value = await listParks()
   } catch (e) {
@@ -55,9 +57,16 @@ onMounted(async () => {
     loadError.value = e?.message || String(e)
     parks.value = FALLBACK_PARKS
   }
+
+  // 添加拙政园以平衡视觉，但后续网页不加支持
+  parks.value.push({ code: 'zhuozhengyuan', name: '拙政园' })
 })
 
 function select(p) {
+  if (p.code === 'zhuozhengyuan') {
+    alert('该景区的 AI 数字人导览正在建设中，敬请期待！')
+    return
+  }
   sessionStorage.setItem('park', p.code)
   sessionStorage.setItem('park_name', p.name)
   router.push('/tourist/preference')
