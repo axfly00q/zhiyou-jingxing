@@ -25,7 +25,7 @@ dist/
 
 # Models / data
 third_party/
-models/
+/models/
 data/uploads/
 data/cache/
 *.ckpt
