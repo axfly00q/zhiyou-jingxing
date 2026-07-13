@@ -11,6 +11,7 @@
   "dependencies": {
     "@pixiv/three-vrm": "^3.5.2",
     "@pixiv/three-vrm-animation": "^3.5.2",
+    "@rive-app/canvas": "^2.38.4",
     "axios": "^1.6.8",
     "echarts": "^6.1.0",
     "html2canvas": "^1.4.1",

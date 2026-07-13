@@ -5,6 +5,7 @@ import Layout from '../views/admin/Layout.vue'
 import TouristHome from '../views/tourist/Home.vue'
 import TouristPreference from '../views/tourist/Preference.vue'
 import TouristChat from '../views/tourist/Chat.vue'
+import TouristRiveChat from '../views/tourist/RiveChat.vue'
 
 // 景区管理端
 import AdminAvatars from '../views/admin/Avatars.vue'
@@ -24,6 +25,7 @@ const router = createRouter({
     { path: '/tourist', component: TouristHome },
     { path: '/tourist/preference', component: TouristPreference },
     { path: '/tourist/chat', component: TouristChat },
+    { path: '/tourist/rive-chat', component: TouristRiveChat },
     // 大屏路由
     { path: '/dashboard', component: Dashboard },
     // 景区管理端路由
